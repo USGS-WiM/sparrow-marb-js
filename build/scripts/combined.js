@@ -27,10 +27,10 @@ THIS CONFIG REMOVES CATCHMENT AND AGGREGATE LABELS FROM THE CHARTOUTFIELS OBJECT
 Also removes PNAME and replaces it with MRB_ID and ST_MRB_ID
 */
 
-var appTitle = "MARB Nutrient Loading";
+var appTitle = "Great Lakes Nutrient Loading";
 var appVersion = "v0.9.0";
 
-var serviceBaseURL = "https://gis.wim.usgs.gov/arcgis/rest/services/SparrowMARBV2/SparrowMARB/MapServer/"; //important! UPDATE rest service URL
+var serviceBaseURL = "https://gis.wim.usgs.gov/arcgis/rest/services/SparrowGreatLakesV2/SparrowGreatLakes/MapServer/"; //important! UPDATE rest service URL
 var chartUnits = " (kg/yr.)"
 
 var groupResultsInitIndex = 1; //sets the default layer for the application.  In this case service layer 1 == HUC8.
@@ -39,7 +39,7 @@ var splitLayers = [5,6,7,13,14,15]; //important! UPDATE layer Ids of all state s
 
 var mapCenter = [-85.2, 44.4];
 //app.defaultMapCenter = [-87, 42];
-defaultZoomLevel = 4;
+defaultZoomLevel = 6
 
 
 var tableOutFields = [
@@ -115,23 +115,21 @@ var mappedDefinitions = {
 }
 
 var phosphorusSourceDefinitons = {
-    s1 : "Sewerage Point Sources",
+    s1 : "Point Sources",
     s2 : "Urban Land",
-    s3 : "Manure",
-    s4 : "Farm Fertilizer",
-    s5 : "Forest/Wetland",
-    s6 : "Stream Channels",
-    s6 : "Loess"
+    s3 : "Manure (Confined)",
+    s4 : "Manure (Unconfined)",
+    s5 : "Farm Fertilizer",
+    s6 : "Forest/Wetland"
 }
 
 /***UPDATE IMPORTANT! complete with source data Excel key***/
 var nitrogenSourceDefinitions = {
-    s1 : "Sewerage Point Sources",
-    s2 : "Urban Land",
-    s3 : "Atmospheric Deposition",
-    s4 : "Manure (confined)",
-    s5 : "Farm Fertilizer",
-    s6 : "Fixation and Legume Sources"
+    s1 : "Point Sources",
+    s2 : "Manure (Confined)",
+    s3 : "Farm Fertilizer",
+    s4 : "Additional Agricultural Sources",
+    s5 : "Atmospheric Depositon"
 }
 
 
@@ -159,8 +157,7 @@ var Catchments = [
             { attribute: "ACCL_S3", label: catchmentDefinitions.accl + ' ' + phosphorusSourceDefinitons.s3},
             { attribute: "ACCL_S4", label: catchmentDefinitions.accl + ' ' + phosphorusSourceDefinitons.s4},
             { attribute: "ACCL_S5", label: catchmentDefinitions.accl + ' ' + phosphorusSourceDefinitons.s5},
-            { attribute: "ACCL_S6", label: catchmentDefinitions.accl + ' ' + phosphorusSourceDefinitons.s6},
-            { attribute: "ACCL_S7", label: catchmentDefinitions.accl + ' ' + phosphorusSourceDefinitons.s7}
+            { attribute: "ACCL_S6", label: catchmentDefinitions.accl + ' ' + phosphorusSourceDefinitons.s6}
         ]
     },
     {
@@ -173,8 +170,7 @@ var Catchments = [
             { attribute: "INCL_S3", label: catchmentDefinitions.incl + ' ' + phosphorusSourceDefinitons.s3},
             { attribute: "INCL_S4", label: catchmentDefinitions.incl + ' ' + phosphorusSourceDefinitons.s4},
             { attribute: "INCL_S5", label: catchmentDefinitions.incl + ' ' + phosphorusSourceDefinitons.s5},
-            { attribute: "INCL_S6", label: catchmentDefinitions.incl + ' ' + phosphorusSourceDefinitons.s6},
-            { attribute: "INCL_S7", label: catchmentDefinitions.incl + ' ' + phosphorusSourceDefinitons.s7}
+            { attribute: "INCL_S6", label: catchmentDefinitions.incl + ' ' + phosphorusSourceDefinitons.s6}
         ] 
     },
     {
@@ -187,8 +183,7 @@ var Catchments = [
             { attribute: "ACCY_S3", label: catchmentDefinitions.accy + ' ' + phosphorusSourceDefinitons.s3},
             { attribute: "ACCY_S4", label: catchmentDefinitions.accy + ' ' + phosphorusSourceDefinitons.s4},
             { attribute: "ACCY_S5", label: catchmentDefinitions.accy + ' ' + phosphorusSourceDefinitons.s5},
-            { attribute: "ACCY_S6", label: catchmentDefinitions.accy + ' ' + phosphorusSourceDefinitons.s6},
-            { attribute: "ACCY_S7", label: catchmentDefinitions.accy + ' ' + phosphorusSourceDefinitons.s7}
+            { attribute: "ACCY_S6", label: catchmentDefinitions.accy + ' ' + phosphorusSourceDefinitons.s6}
         ]
     },
     {
@@ -201,8 +196,7 @@ var Catchments = [
             { attribute: "INCY_S3", label: catchmentDefinitions.incy + ' ' + phosphorusSourceDefinitons.s3},
             { attribute: "INCY_S4", label: catchmentDefinitions.incy + ' ' + phosphorusSourceDefinitons.s4},
             { attribute: "INCY_S5", label: catchmentDefinitions.incy + ' ' + phosphorusSourceDefinitons.s5},
-            { attribute: "INCY_S6", label: catchmentDefinitions.incy + ' ' + phosphorusSourceDefinitons.s6},
-            { attribute: "INCY_S7", label: catchmentDefinitions.incy + ' ' + phosphorusSourceDefinitons.s7}
+            { attribute: "INCY_S6", label: catchmentDefinitions.incy + ' ' + phosphorusSourceDefinitons.s6}
         ]
     },
     {
@@ -215,8 +209,7 @@ var Catchments = [
             { attribute: "DACCL_S3", label: catchmentDefinitions.daccl + ' ' + phosphorusSourceDefinitons.s3},
             { attribute: "DACCL_S4", label: catchmentDefinitions.daccl + ' ' + phosphorusSourceDefinitons.s4},
             { attribute: "DACCL_S5", label: catchmentDefinitions.daccl + ' ' + phosphorusSourceDefinitons.s5},
-            { attribute: "DACCL_S6", label: catchmentDefinitions.daccl + ' ' + phosphorusSourceDefinitons.s6},
-            { attribute: "DACCL_S7", label: catchmentDefinitions.daccl + ' ' + phosphorusSourceDefinitons.s7}
+            { attribute: "DACCL_S6", label: catchmentDefinitions.daccl + ' ' + phosphorusSourceDefinitons.s6}
         ]
     },
     {
@@ -229,8 +222,7 @@ var Catchments = [
             { attribute: "DACCY_S3", label: catchmentDefinitions.daccy + ' ' + phosphorusSourceDefinitons.s3},
             { attribute: "DACCY_S4", label: catchmentDefinitions.daccy + ' ' + phosphorusSourceDefinitons.s4},
             { attribute: "DACCY_S5", label: catchmentDefinitions.daccy + ' ' + phosphorusSourceDefinitons.s5},
-            { attribute: "DACCY_S6", label: catchmentDefinitions.daccy + ' ' + phosphorusSourceDefinitons.s6},
-            { attribute: "DACCY_S7", label: catchmentDefinitions.daccy + ' ' + phosphorusSourceDefinitons.s7}
+            { attribute: "DACCY_S6", label: catchmentDefinitions.daccy + ' ' + phosphorusSourceDefinitons.s6}
         ]
     },
     {
@@ -243,8 +235,7 @@ var Catchments = [
             { attribute: "DINCL_S3", label: catchmentDefinitions.dincl + ' ' + phosphorusSourceDefinitons.s3},
             { attribute: "DINCL_S4", label: catchmentDefinitions.dincl + ' ' + phosphorusSourceDefinitons.s4},
             { attribute: "DINCL_S5", label: catchmentDefinitions.dincl + ' ' + phosphorusSourceDefinitons.s5},
-            { attribute: "DINCL_S6", label: catchmentDefinitions.dincl + ' ' + phosphorusSourceDefinitons.s6},
-            { attribute: "DINCL_S7", label: catchmentDefinitions.dincl + ' ' + phosphorusSourceDefinitons.s7}
+            { attribute: "DINCL_S6", label: catchmentDefinitions.dincl + ' ' + phosphorusSourceDefinitons.s6}
         ]
     },
     {
@@ -257,8 +248,7 @@ var Catchments = [
             { attribute: "DINCY_S3", label: catchmentDefinitions.dincy + ' ' + phosphorusSourceDefinitons.s3},
             { attribute: "DINCY_S4", label: catchmentDefinitions.dincy + ' ' + phosphorusSourceDefinitons.s4},
             { attribute: "DINCY_S5", label: catchmentDefinitions.dincy + ' ' + phosphorusSourceDefinitons.s5},
-            { attribute: "DINCY_S6", label: catchmentDefinitions.dincy + ' ' + phosphorusSourceDefinitons.s6},
-            { attribute: "DINCY_S7", label: catchmentDefinitions.dincy + ' ' + phosphorusSourceDefinitons.s7}
+            { attribute: "DINCY_S6", label: catchmentDefinitions.dincy + ' ' + phosphorusSourceDefinitons.s6}
         ]
     }
 
@@ -2817,9 +2807,21 @@ require([
     }//END createTableQuery()
 
     app.createChartQuery = function(optionalWhereClause){   
-        $("#toast_body").html("Chart is loading");        
-        $("#toast-fixed").fadeIn();
-        $("#toast-fixed").css('opacity', '1');
+        
+        if( $("#chartWindowDiv").css("visibility") != "visible" ) {
+           $('#chartWindowDiv').css({
+                'visibility': 'visible',
+                'height': '800px',
+                'width': '800px',
+                'top': '50px',
+                'left': '510px'
+            });
+            $("#chartWindowContent").addClass("content-loading");
+        }  else {
+            $("#chartWindowContent").addClass("content-loading");
+        }
+
+        
  
         $('#chartContainer').empty();
         console.log('creating chart query');
@@ -2858,6 +2860,9 @@ require([
         chartQuery.where = whereClause;
 
         chartQueryTask.execute(chartQuery, showChart);
+
+        //$('#chartWindowDiv').addClass("content-loading");
+        $('#chartTabContent').addClass("content-loading");
     }//END app.createChartQuery
 
     app.downloadChartPNG = function(){
@@ -3691,6 +3696,9 @@ require([
         var height = $('#chartWindowDiv').height() - 65;
         var width = $('#chartWindowDiv').width();
         $('#chartWindowContainer').highcharts().setSize(width-50, height-105, true);
+        $('#chartTabContent').removeClass("content-loading");
+        //$('#chartWindowDiv').removeClass("content-loading");
+        //$('#loadingDiv').removeClass("content-loading");
 
     } //END ShowChart()
 
@@ -4341,8 +4349,8 @@ function loadEventHandlers() {
 
         //reflow the chart if it's open
         if( $("#chartWindowDiv").css("visibility") == "visible" ) {
-            $("#toast_body").html("Chart updating");  
-            $("#toast-fixed").fadeIn();  
+            //$("#toast_body").html("Chart updating");  
+            //$("#toast-fixed").fadeIn();  
  
             app.createChartQuery();
         }
@@ -4380,7 +4388,7 @@ function loadEventHandlers() {
             $('#showMiniChart').text('(Hide Chart)');
         } else {
             $("#miniChartContainer")[0].hidden = true;
-            $('#showMiniChart').text('(Show Chart)');
+            $('#showMiniChart').text('(Show Chart Example)');
         }
     })
     $("#showMiniChart").click(function(){
@@ -4445,8 +4453,8 @@ function loadEventHandlers() {
         generateRenderer();
 
         if( $("#chartWindowDiv").css("visibility") == "visible" ) {
-            $("#toast_body").html("Chart updating");  
-            $("#toast-fixed").fadeIn();
+            /*$("#toast_body").html("Chart updating");  
+            $("#toast-fixed").fadeIn();*/
             app.createChartQuery();
         }
     });
@@ -4478,8 +4486,8 @@ function loadEventHandlers() {
         generateRenderer();
 
         if( $("#chartWindowDiv").css("visibility") == "visible" ) {
-            $("#toast_body").html("Chart updating");  
-            $("#toast-fixed").fadeIn();
+           /* $("#toast_body").html("Chart updating");  
+            $("#toast-fixed").fadeIn();*/
             app.createChartQuery();
         }        
         // remove all warnings if any
@@ -5198,7 +5206,7 @@ function generateRenderer(){
         }
         
         //UPDATE important!  url must match service url ---- note maybe move to config file?
-        app.Url = "https://gis.wim.usgs.gov/arcgis/rest/services/SparrowMARBV2/SparrowMARB/MapServer/" + sparrowId;
+        app.Url = "https://gis.wim.usgs.gov/arcgis/rest/services/SparrowGreatLakesV2/SparrowGreatLakes/MapServer/" + sparrowId;
         
         var selectedMetric = $('#displayedMetricSelect')[0].value;
         //var selectedMetric = "ST_AL";
