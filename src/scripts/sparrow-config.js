@@ -100,7 +100,7 @@ var phosphorusSourceDefinitons = {
     s4 : "Farm Fertilizer",
     s5 : "Forest/Wetland",
     s6 : "Stream Channels",
-    s6 : "Loess"
+    s7 : "Loess"
 }
 
 /***UPDATE IMPORTANT! complete with source data Excel key***/
