@@ -102,7 +102,7 @@ require([
             "showGroupHeading": true,
             "includeInLayerList": true,
             "layers": {
-                "Great Lakes Streams" : {
+                "MARB Streams" : {
                     "url": serviceBaseURL,
                     "visibleLayers": [20],
                     "options": {
@@ -118,7 +118,7 @@ require([
                         "includeLegend" : false
                     }
                 },
-                "Great Lakes SPARROW Model Area" : {
+                "MARB SPARROW Model Area" : {
                     "url": serviceBaseURL,
                     "visibleLayers": [21],
                     "options": {
