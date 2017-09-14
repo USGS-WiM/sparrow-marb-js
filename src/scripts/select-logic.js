@@ -345,10 +345,10 @@ function getTableFields(headerKeysArr, sparrowLayerId){
 
     htmlHeaderArr.push("<tr>");
     $.each(headerKeysArr, function(index, key){
-        console.log(key);
+        //console.log(key);
         $.each(flatArr, function(index, obj){
             if(key == obj.field){
-                console.log(obj.field);
+               //console.log(obj.field);
                 htmlHeaderArr.push('<th>' + obj.name + '</th>');
                 return false; //escape the each loop?
             }
@@ -374,7 +374,7 @@ function getLegendLabels(sparrowLayerId){
 
 function getChartOutfields(sparrowLayerId){
     var chartFieldsArr = [];
-    console.log("in GetChartOutfields()")
+    //console.log("in GetChartOutfields()")
     var configObject = app.getLayerConfigObject(sparrowLayerId);
     $.each(configObject, function(index, item){
         if( $("#displayedMetricSelect").val() == item.field ) {
@@ -478,11 +478,10 @@ function generateRenderer(){
             app.layerDef = "1=1";
         }
         
-        //UPDATE important!  url must match service url ---- note maybe move to config file?
-        app.Url = "https://gis.wim.usgs.gov/arcgis/rest/services/SparrowGreatLakesV2/SparrowGreatLakes/MapServer/" + sparrowId;
+        //UPDATE important!  url must match serviceBaseURL in config
+        app.Url = serviceBaseURL + sparrowId;
         
         var selectedMetric = $('#displayedMetricSelect')[0].value;
-        //var selectedMetric = "ST_AL";
         app.outFields = [selectedMetric];
         app.currentAttribute = selectedMetric; 
         var classDef = new ClassBreaksDefinition();
@@ -503,11 +502,11 @@ function generateRenderer(){
         var colorRamp = new AlgorithmicColorRamp();
         //different ramps for phos/nitro
         if( $(".radio input[type='radio']:checked")[0].id == "radio1" ){
-            //phos = brown
+            //phos brown schema
             colorRamp.fromColor = new Color.fromHex("#FFF1DC");
             colorRamp.toColor = new Color.fromHex("#632E0E");
         } else{
-            //nitro = green
+            //nitro green schema
             colorRamp.fromColor = new Color.fromHex("#F5EBB8");
             colorRamp.toColor = new Color.fromHex("#004120");
         }
@@ -525,7 +524,7 @@ function generateRenderer(){
 
         function processValues(renderer){
 
-            //calculate to 3 significant figures
+            //calculate legend values to 3 significant figures
             function sigFigures(n){
                 if (n > 0 ){
                     var mult = Math.pow(10, 3 - Math.floor(Math.log(n) / Math.LN10) -1);

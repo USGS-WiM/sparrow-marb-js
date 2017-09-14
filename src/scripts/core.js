@@ -668,7 +668,7 @@ require([
 
     app.executeIdentifyTask = function(evt){
         app.shiftKey = evt.shiftKey;
-        console.log(evt);
+        //console.log(evt);
         var sparrowLayer = app.map.getLayer('SparrowRanking').visibleLayers[0];
 
         app.identifyParams.layerIds = [sparrowLayer];
@@ -738,10 +738,10 @@ require([
                             calibrationTemplate.setTitle('SPARROW ' + model + ' Calibration Site');
                             //UPDATE important! make sure the field names match what is in the REST layer
                             calibrationTemplate.setContent('<div><b>Station Name:</b> ' + responseObj.feature.attributes.NAME + '</div><br>' +
-                                                            '<div><b>Station ID:</b> </b>' + responseObj.feature.attributes.STATION_ID + '</div><br>' +
+                                                            '<div><b>Station ID:</b> </b>' + responseObj.feature.attributes.STAID + '</div><br>' +
                                                             '<div><b>SPARROW Reach ID: </b>' + responseObj.feature.attributes.MRB_ID + '</div><br>'+
-                                                            '<div><b>Fluxmaster Load' + chartUnits +': </b>' + responseObj.feature.attributes.FLUXMASTER + '</div><br>' +
-                                                            '<div><b>SPARROW Estimated Load ' + chartUnits +': </b>' + responseObj.feature.attributes.SPARROW_ES + '</div><br>');
+                                                            '<div><b>Fluxmaster Load' + chartUnits +': </b>' + responseObj.feature.attributes.LOAD_A_006 + '</div><br>' +
+                                                            '<div><b>SPARROW Estimated Load ' + chartUnits +': </b>' + responseObj.feature.attributes.PLOAD_TOTA + '</div><br>');
 
                             var graphic = new Graphic();
                             var feature = graphic;
@@ -759,10 +759,10 @@ require([
                             calibrationTemplateN.setTitle('SPARROW ' + modelN + ' Calibration Site');
                             //UPDATE important! make sure the field names below match what is in the REST layer
                             calibrationTemplateN.setContent('<div><b>Station Name:</b> ' + responseObj.feature.attributes.NAME + '</div><br>' +
-                                                            '<div><b>Station ID:</b> </b>' + responseObj.feature.attributes.STATION_ID + '</div><br>' +
+                                                            '<div><b>Station ID:</b> </b>' + responseObj.feature.attributes.STAID + '</div><br>' +
                                                             '<div><b>SPARROW Reach ID: </b>' + responseObj.feature.attributes.MRB_ID + '</div><br>'+
-                                                            '<div><b>Fluxmaster Load' + chartUnits +': </b>' + responseObj.feature.attributes.FLUXMASTER + '</div><br>' +
-                                                            '<div><b>SPARROW Estimated Load ' + chartUnits +': </b>' + responseObj.feature.attributes.SPARROW_ES + '</div><br>');
+                                                            '<div><b>Fluxmaster Load' + chartUnits +': </b>' + responseObj.feature.attributes.LOAD_A_006 + '</div><br>' +
+                                                            '<div><b>SPARROW Estimated Load ' + chartUnits +': </b>' + responseObj.feature.attributes.PLOAD_TOTA + '</div><br>');
 
                             var graphic = new Graphic();
                             var feature = graphic;
@@ -794,7 +794,7 @@ require([
                         }
 
                         $.each(fields, function(index, obj){
-                            console.log(obj.attribute);
+                            //console.log(obj.attribute);
                         });
                         //No infoWindow, just call the chart query
                         app.createChartQuery(chartQueryArg);
@@ -856,7 +856,7 @@ require([
         
  
         $('#chartContainer').empty();
-        console.log('creating chart query');
+        //console.log('creating chart query');
         var chartQueryTask;
         var sparrowLayerId = app.map.getLayer('SparrowRanking').visibleLayers[0];
 
@@ -1198,7 +1198,7 @@ require([
             });
         }*/
 
-        console.log('featureSort', featureSort);
+        //console.log('featureSort', featureSort);
 
         //create array of field names
         $.each(response.features[0].attributes, function(key, value){
@@ -1350,10 +1350,10 @@ require([
         //Important! UPDATE if nutrient Models change names.
         if( $('.radio input[type="radio"]:checked')[0].id == 'radio1'){
             $('#chartWindowPanelTitle').text('Total Phosphorus ' + labelySelect() );
-            console.log("Radio One");
+            //console.log("Radio One");
         }   else{
             $('#chartWindowPanelTitle').text('Total Nitrogen ' + labelySelect() );
-            console.log("Radio Two");
+            //console.log("Radio Two");
         }
 
         if (response.features.length <= 1 || app.customChartClicked){
@@ -1780,7 +1780,7 @@ require([
         var htmlHeaderArr =  [];
         htmlHeaderArr.push("<tr>");
         $.each(headerKeyArr, function(index, key){
-            console.log(key);
+            //console.log(key);
             htmlHeaderArr.push('<th>' + key + '</th>');
 
         });
@@ -1978,7 +1978,7 @@ require([
             series[index].data = chartArr[index];
         });
 
-        //TUPDATE IMPORTANT!  Match labels with #groupResultsSelect indicies
+        //UPDATE IMPORTANT!  Match labels with #groupResultsSelect indicies
         function labelxSelect(){
             var dropdown = $('#groupResultsSelect')[0].selectedIndex;
             switch ( dropdown ){
@@ -2118,7 +2118,7 @@ require([
         if (app.userSelectedDispFieldName != "") {
             app.formattedHighlightString = app.userSelectedDispFieldName + " IN (" + app.userSelectedShapes.join(",") + ")";
             app.customChartClicked = true;
-            console.log("Custom Click: " + app.formattedHighlightString);
+            //console.log("Custom Click: " + app.formattedHighlightString);
             app.createMiniChartQuery(app.formattedHighlightString);
             app.userSelectedDispFieldName = "";
             app.userSelectedShapes = [];
@@ -2301,7 +2301,7 @@ require([
                         $('#slider').change(function(event) {
                             //get the value of the slider with this call
                             var o = ($('#slider')[0].value)/100;
-                            console.log("o: " + o);
+                            //console.log("o: " + o);
                             $("#opacityValue").html("Opacity: " + o)
                             app.map.getLayer(options.id).setOpacity(o);
                             //here I am just specifying the element to change with a "made up" attribute (but don't worry, this is in the HTML specs and supported by all browsers).

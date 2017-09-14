@@ -25,20 +25,20 @@ function loadEventHandlers() {
     //UPDATE: important! make sure the file name is updated_____________________________________________________
     $("#phosphorusDownload").click(function() {
         // hope the server sets Content-Disposition: attachment!
-        window.location = 'https://test.wim.usgs.gov/SparrowGreatLakesV2/downloads/greatlakes_shapefiles_phosphorus.zip';
+        window.location = phosphorusShapefileURL;
     });
     //UPDATE: important! make sure the file name is updated_____________________________________________________
     $("#nitrogenDownload").click(function() {
         // hope the server sets Content-Disposition: attachment!
-        window.location = 'https://test.wim.usgs.gov/SparrowGreatLakesV2/downloads/greatlakes_shapefiles_nitrogen.zip';
+        window.location = nitrogenShapefileURL;
     });
     $("#phosphorusCalibrationDownload").click(function() {
         // hope the server sets Content-Disposition: attachment!
-        window.location = 'https://test.wim.usgs.gov/SparrowGreatLakesV2/downloads/greatlakes_phosphorus_calibration_sites.zip';
+        window.location = phosCalibrationURL;
     });
     $("#nitrogenCalibrationDownload").click(function() {
         // hope the server sets Content-Disposition: attachment!
-        window.location = 'https://test.wim.usgs.gov/SparrowGreatLakesV2/downloads/greatlakes_nitrogen_calibration_sites.zip';
+        window.location = nitroCalibrationURL;
     });
     $("#PNGChartDownload").click(function(){
         app.downloadPNGofChart();
@@ -282,7 +282,7 @@ function loadEventHandlers() {
         if (app.userSelectedDispFieldName != "") {
             app.formattedHighlightString = app.userSelectedDispFieldName + " IN (" + app.userSelectedShapes.join(",") + ")";
             app.customChartClicked = true;
-            console.log("Custom Click: " + app.formattedHighlightString);
+            //console.log("Custom Click: " + app.formattedHighlightString);
             app.createChartQuery(app.formattedHighlightString);
             app.userSelectedDispFieldName = "";
             app.userSelectedShapes = [];
