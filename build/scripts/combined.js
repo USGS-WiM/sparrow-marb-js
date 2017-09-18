@@ -37,9 +37,9 @@ var groupResultsInitIndex = 1; //sets the default layer for the application.  In
 
 var splitLayers = [5,6,7,13,14,15]; //important! UPDATE layer Ids of all state split layers
 
-var mapCenter = [-85.2, 44.4];
+var mapCenter = [-96.64, 40.744];
 //app.defaultMapCenter = [-87, 42];
-defaultZoomLevel = 4;
+defaultZoomLevel = 5;
 
 //download locations
 var phosphorusShapefileURL = 'https://test.wim.usgs.gov/SparrowMARBV2/downloads/marb_shapefiles_phosphorus.zip';
