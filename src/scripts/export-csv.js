@@ -266,7 +266,7 @@
             blobObject,
             name,
             options = (chart.options.exporting || {}).csv || {},
-            url = options.url || 'http://www.highcharts.com/studies/csv-export/download.php';
+            url = options.url || 'https://www.highcharts.com/studies/csv-export/download.php';
 
         if (chart.options.exporting.filename) {
             name = chart.options.exporting.filename;

@@ -1927,7 +1927,7 @@ require([
             blobObject,
             name,
             options = (chart.options.exporting || {}).csv || {},
-            url = options.url || 'http://www.highcharts.com/studies/csv-export/download.php';
+            url = options.url || 'https://www.highcharts.com/studies/csv-export/download.php';
 
         if (chart.options.exporting.filename) {
             name = chart.options.exporting.filename;
@@ -3613,7 +3613,7 @@ require([
                                 load:function(){
                                     this.chartBackground.attr({ fill: 'rgba(255, 255, 255, 1.0)' });
                                   // this.plotBackground.attr({ fill: 'rgba(255, 255, 255, 1.0)'  });
-                                    this.renderer.image('http://wim.usgs.gov/visuals/usgs/usgslogo1.jpg', 2, 2, 50, 30).add();
+                                    this.renderer.image('https://wim.usgs.gov/visuals/usgs/usgslogo1.jpg', 2, 2, 50, 30).add();
                                 }
                             }
                         }
@@ -4114,7 +4114,7 @@ require([
                             events:{
                                 load:function(){
                                     this.chartBackground.attr({ fill: 'rgba(255, 255, 255, 1.0)' });
-                                    this.renderer.image('http://wim.usgs.gov/visuals/usgs/usgslogo1.jpg', 2, 2, 50, 30).add();
+                                    this.renderer.image('https://wim.usgs.gov/visuals/usgs/usgslogo1.jpg', 2, 2, 50, 30).add();
                                 }
                             }
                         }
