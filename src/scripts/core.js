@@ -311,6 +311,251 @@ require([
         // for four AOI options
         var filteredAOIOptions = [];
 
+        var grp2Options = [];
+        var grp1Options = [];
+        var stOptions = [];
+
+        switch(Object.keys(app.getLayerDefObj()).length) {
+            //3 dropdowns are chosen, just update the one that's not
+            case 3:
+                var whichProp = ""; var whichSelect = ""; var whichAOI = "";
+                //which one isn't chosen
+                if (!layerDefObj.AOI3) {
+                    // aoi3 needs to be updated using the other 3 
+                    $('#grp3-select').empty(); 
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST && s.GP1 == layerDefObj.AOI1 && s.GP2 === layerDefObj.AOI2; });
+                    whichProp = "GP3"; whichSelect = "#grp3-select"; whichAOI = "AOI3";
+                }
+                else if (!layerDefObj.AOI2) {
+                    // aoi2 needs to be updated using the other 3 
+                    $('#grp2-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST && s.GP1 == layerDefObj.AOI1 && s.GP3 === layerDefObj.AOI3; });
+                    whichProp = "GP2"; whichSelect = "#grp2-select"; whichAOI = "AOI2";
+                } else  if (!layerDefObj.AOI1) {
+                    // aoi1 needs to be updated using the other 3 
+                    $('#grp1-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST && s.GP2 == layerDefObj.AOI2 && s.GP3 === layerDefObj.AOI3; });
+                    whichProp = "GP1"; whichSelect = "#grp1-select"; whichAOI = "AOI1";
+                } else {
+                    // st needs to be updated using the other 3 
+                    $('#st-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP1 === layerDefObj.AOI1 && s.GP2 == layerDefObj.AOI2 && s.GP3 === layerDefObj.AOI3; });
+                    whichProp = "ST"; whichSelect = "#st-select"; whichAOI = "AOIST";
+                }
+                //nothing was filtered out of AllAOIOptions, bring them all along
+                if (filteredAOIOptions.length === 0) {
+                    filteredAOIOptions = AllAOIOptions;
+                }
+
+                /*______________________________________________________
+                    filteredAOIOptions Array of Objects Example         ]
+                [{                                                      ]
+                    GP1: "Conasauga River",                             ]
+                    GRP_2_NAM: "03150101",                              ]
+                    GP3:"0315010101",                                   ]
+                    ST:"GA"   <--- Selected State                       ]
+                },                                                      ]
+                {                                                       ]
+                    GP1: "Conasauga River",                             ]
+                    GRP_2_NAM: "03150101",                              ]
+                    GP3:"0315010102",  <-- Obj for every HUC10          ]
+                    ST:"GA"                                             ]
+                }]                                                      ]
+                ________________________________________________________]
+                */
+
+                //get unique group values                
+                var theseOptions = getUniqueArray(filteredAOIOptions, whichProp);
+
+                //set other two AOI options and reselect if previously selected
+             //   appendSelectOptions(grp3Options, '#grp3-select', 'AOI3');
+                //set the filtered grp3 options
+                $.each(theseOptions, function(index, option){
+                    $(whichSelect).append(new Option(option));
+                });
+                $(whichSelect).selectpicker('refresh');
+                if(layerDefObj[whichAOI]){
+                    $(whichSelect).selectpicker('val', layerDefObj[whichAOI]);
+                }               
+                break;
+            case 2:
+                var firstProp = ""; var firstOptions = ""; var firstSelect = ""; var firstLayerDef = "";
+                var secondProp = ""; var secondOptions = ""; var secondSelect = ""; var secondLayerDef = "";
+                //vars for already selected value that didn't just get chosen, to reupdate it
+                var extraProp = ""; var extraSelect = ""; var extraLayerDef = ""; var filteredExtraOptions = [];
+                //2 dropdowns are chosen, just update the other 2 that's not
+                //which 2 are not chosen
+                if (!layerDefObj.AOIST && !layerDefObj.AOI1) {
+                    //st and aoi1 need to be updated using aoi2 and aoi3
+                    $('#st-select').empty(); $('#grp1-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP2 === layerDefObj.AOI2 && s.GP3 == layerDefObj.AOI3; });
+                    //also reupdate the one that is not selectedId ('grp2-select' or 'grp3-select' )
+                    if (selectedId == "grp2-select"){
+                        $('#grp3-select').empty();
+                        filteredExtraOptions = AllAOIOptions.filter(function(s){ return s.GP2 == layerDefObj.AOI2;});
+                        extraProp = "GP3"; extraSelect = "#grp3-select"; extraLayerDef = "AOI3";
+                    } else {
+                        $('#grp2-select').empty();
+                        filteredExtraOptions = AllAOIOptions.filter(function(s){ return s.GP3 == layerDefObj.AOI3;});
+                        extraProp = "GP2"; extraSelect = "#grp2-select"; extraLayerDef = "AOI2";
+                    }
+                    firstProp = "ST"; firstSelect = "#st-select"; firstLayerDef = "AOIST";
+                    secondProp = "GP1"; secondSelect = "#grp1-select"; secondLayerDef = "AOI1";
+                } else if (!layerDefObj.AOIST && !layerDefObj.AOI2) {
+                    //st and aoi2 need to be updated using aoi1 and aoi3
+                    $('#st-select').empty(); $('#grp2-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP1 === layerDefObj.AOI1 && s.GP3 == layerDefObj.AOI3; });
+                    //also reupdate the one that is not selectedId ('grp1-select' or 'grp3-select' )
+                    if (selectedId == "grp1-select"){
+                        $('#grp3-select').empty();
+                        filteredExtraOptions = AllAOIOptions.filter(function(s){ return s.GP1 == layerDefObj.AOI1;});
+                        extraProp = "GP3"; extraSelect = "#grp3-select"; extraLayerDef = "AOI3";
+                    } else {
+                        $('#grp1-select').empty();
+                        filteredExtraOptions = AllAOIOptions.filter(function(s){ return s.GP3 == layerDefObj.AOI3;});
+                        extraProp = "GP1"; extraSelect = "#grp1-select"; extraLayerDef = "AOI1";
+                    }
+                    firstProp = "ST"; firstSelect = "#st-select"; firstLayerDef = "AOIST";
+                    secondProp = "GP2"; secondSelect = "#grp2-select"; secondLayerDef = "AOI2";
+                } else if (!layerDefObj.AOIST && !layerDefObj.AOI3) {
+                    //st and aoi3 need to be updated using aoi1 and aoi2
+                    $('#st-select').empty(); $('#grp3-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP1 === layerDefObj.AOI1 && s.GP2 == layerDefObj.AOI2; });
+                    //also reupdate the one that is not selectedId ('grp1-select' or 'grp2-select' )
+                    if (selectedId == "grp1-select"){
+                        $('#grp2-select').empty();
+                        filteredExtraOptions = AllAOIOptions.filter(function(s){ return s.GP1 == layerDefObj.AOI1;});
+                        extraProp = "GP2"; extraSelect = "#grp2-select"; extraLayerDef = "AOI2";
+                    } else {
+                        $('#grp1-select').empty();
+                        filteredExtraOptions = AllAOIOptions.filter(function(s){ return s.GP2 == layerDefObj.AOI2;});
+                        extraProp = "GP1"; extraSelect = "#grp1-select"; extraLayerDef = "AOI1";
+                    }
+                    firstProp = "ST"; firstSelect = "#st-select"; firstLayerDef = "AOIST";
+                    secondProp = "GP3"; secondSelect = "#grp3-select"; secondLayerDef = "AOI3";
+                } else if (!layerDefObj.AOI1 && !layerDefObj.AOI2) {                     
+                    //aoi1 and aoi2 need to be updated using st and aoi3
+                    $('#grp1-select').empty(); $('#grp2-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST && s.GP3 == layerDefObj.AOI3; });
+                    //also reupdate the one that is not selectedId ('st-select' or 'grp3-select' )
+                    if (selectedId == "st-select"){
+                        $('#grp3-select').empty();
+                        filteredExtraOptions = AllAOIOptions.filter(function(s){ return s.ST == layerDefObj.AOIST;});
+                        extraProp = "GP3"; extraSelect = "#grp3-select"; extraLayerDef = "AOI3";
+                    } else {
+                        $('#st-select').empty();
+                        filteredExtraOptions = AllAOIOptions.filter(function(s){ return s.GP3 == layerDefObj.AOI3;});
+                        extraProp = "ST"; extraSelect = "#st-select"; extraLayerDef = "AOIST";
+                    }
+                    firstProp = "GP1"; firstSelect = "#grp1-select"; firstLayerDef = "AOI1";
+                    secondProp = "GP2"; secondSelect = "#grp2-select"; secondLayerDef = "AOI2";
+                } else if (!layerDefObj.AOI1 && !layerDefObj.AOI3) {
+                    //aoi1 and aoi3 need to be updated using st and aoi2
+                    $('#grp1-select').empty(); $('#grp3-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST && s.GP2 == layerDefObj.AOI2; });
+                    //also reupdate the one that is not selectedId ('st-select' or 'grp2-select' )
+                    if (selectedId == "st-select"){
+                        $('#grp2-select').empty();
+                        filteredExtraOptions = AllAOIOptions.filter(function(s){ return s.ST == layerDefObj.AOIST;});
+                        extraProp = "GP2"; extraSelect = "#grp2-select"; extraLayerDef = "AOI2";
+                    } else {
+                        $('#st-select').empty();
+                        filteredExtraOptions = AllAOIOptions.filter(function(s){ return s.GP2 == layerDefObj.AOI2;});
+                        extraProp = "ST"; extraSelect = "#st-select"; extraLayerDef = "AOIST";
+                    }
+                    firstProp = "GP1"; firstSelect = "#grp1-select"; firstLayerDef = "AOI1";
+                    secondProp = "GP3"; secondSelect = "#grp3-select"; secondLayerDef = "AOI3";
+                } else if (!layerDefObj.AOI2 && !layerDefObj.AOI3) {
+                    //aoi2 and aoi3 need to be updated using st and aoi1
+                    $('#grp2-select').empty(); $('#grp3-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST && s.GP1 == layerDefObj.AOI1; });
+                    //also reupdate the one that is not selectedId ('st-select' or 'grp1-select' )
+                    if (selectedId == "st-select"){
+                        $('#grp1-select').empty();
+                        filteredExtraOptions = AllAOIOptions.filter(function(s){ return s.ST == layerDefObj.AOIST;});
+                        extraProp = "GP1"; extraSelect = "#grp1-select"; extraLayerDef = "AOI1";
+                    } else {
+                        $('#st-select').empty();
+                        filteredExtraOptions = AllAOIOptions.filter(function(s){ return s.GP1 == layerDefObj.AOI1;});
+                        extraProp = "ST"; extraSelect = "#st-select"; extraLayerDef = "AOIST";
+                    }
+                    firstProp = "GP2"; firstSelect = "#grp2-select"; firstLayerDef = "AOI2";
+                    secondProp = "GP3"; secondSelect = "#grp3-select"; secondLayerDef = "AOI3";
+                }
+                if (filteredAOIOptions.length === 0) {
+                    filteredAOIOptions = AllAOIOptions;
+                }
+
+                //get unique arrays
+                var arrayOptions = getUniqueArray(filteredAOIOptions, firstProp);
+                var theseOptions = getUniqueArray(filteredAOIOptions, secondProp);
+                var extraOptions = getUniqueArray(filteredExtraOptions, extraProp);
+                //set other two AOI options and reselect if previously selected
+                appendSelectOptions(arrayOptions, firstSelect, firstLayerDef, theseOptions, secondSelect, secondLayerDef);    
+                //update the one that was selected already but didn't just now get changed
+                $.each(extraOptions, function(index, option){
+                    $(extraSelect).append(new Option(option));
+                });
+                $(extraSelect).selectpicker('refresh');
+                if(layerDefObj[extraLayerDef]){
+                    $(extraSelect).selectpicker('val', layerDefObj[extraLayerDef]);
+                }     
+                break;            
+            case 1:
+                var otherThree = []; var threeSelects = []; var threeAOIs = [];
+                //1 dropdown is chosen, update the other 3 that's not
+                //which 1 is chosen
+                if (layerDefObj.AOIST) {
+                    // state is chosen, update aoi1, aoi2, aoi3
+                    $('#grp1-select').empty(); $('#grp2-select').empty(); $('#grp3-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST });
+                    otherThree = ["GP1", "GP2", "GP3"]; threeSelects = ["#grp1-select", "#grp2-select", "#grp3-select"]; threeAOIs = ["AOI1", "AOI2", "AOI3"];
+                }
+                else if (layerDefObj.AOI1) {
+                    // aoi1 is chosen, update st, aoi2, aoi3
+                    $('#st-select').empty(); $('#grp2-select').empty(); $('#grp3-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP1 === layerDefObj.AOI1; });
+                    otherThree = ["ST", "GP2", "GP3"]; threeSelects = ["#st-select", "#grp2-select", "#grp3-select"]; threeAOIs = ["AOIST", "AOI2", "AOI3"];
+                } else if (layerDefObj.AOI2) {
+                    // aoi2 is chosen, update st, aoi1, aoi3
+                    $('#st-select').empty(); $('#grp1-select').empty(); $('#grp3-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP2 === layerDefObj.AOI2; });
+                    otherThree = ["ST", "GP1", "GP3"]; threeSelects = ["#st-select", "#grp1-select", "#grp3-select"]; threeAOIs = ["AOIST", "AOI1", "AOI3"];
+                }else if (layerDefObj.AOI3) {
+                    // aoi3 is chosen, update st, aoi1, aoi2
+                    $('#st-select').empty(); $('#grp1-select').empty(); $('#grp2-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP3 === layerDefObj.AOI3; });
+                    otherThree = ["ST", "GP1", "GP2"]; threeSelects = ["#st-select", "#grp1-select", "#grp2-select"]; threeAOIs = ["AOIST", "AOI1", "AOI2"];
+                }
+                if (filteredAOIOptions.length === 0) {
+                    filteredAOIOptions = AllAOIOptions;
+                }
+                for (var i = 0; i < 4; i++){
+                    var options = getUniqueArray(filteredAOIOptions, otherThree[i]);
+                    $.each(options, function(index, option){
+                        $(threeSelects[i]).append(new Option(option));
+                    });
+                    $(threeSelects[i]).selectpicker('refresh');
+                    if(layerDefObj[threeSelects[i]]){
+                        $(threeSelects[i]).selectpicker('val', threeAOIs[i]);
+                    }       
+                }
+                break;
+            
+            case 0:
+                //none are chosen, get everything
+                //reset the selects
+                $('.aoiSelect').selectpicker('val', '');  
+                app.clearLayerDefObj();
+                break;
+
+        }
+    }
+
+    /*app.updateAOIs = function(selectedId){
+        // for four AOI options
+        var filteredAOIOptions = [];
+
         var grp3Options = [];
         var grp2Options = [];
         var grp1Options = [];
@@ -335,19 +580,19 @@ require([
                 /*______________________________________________________
                     filteredAOIOptions Array of Objects Example         ]
                 [{                                                      ]
-                    GP1: "Conasauga River",                       ]
+                    GP1: "Conasauga River",                             ]
                     GRP_2_NAM: "03150101",                              ]
-                    GP3:"0315010101",                             ]
+                    GP3:"0315010101",                                   ]
                     ST:"GA"   <--- Selected State                       ]
                 },                                                      ]
                 {                                                       ]
-                    GP1: "Conasauga River",                       ]
+                    GP1: "Conasauga River",                             ]
                     GRP_2_NAM: "03150101",                              ]
-                    GP3:"0315010102",  <-- Obj for every HUC10    ]
+                    GP3:"0315010102",  <-- Obj for every HUC10          ]
                     ST:"GA"                                             ]
                 }]                                                      ]
                 ________________________________________________________]
-                */
+                
 
                 //get unique group 1 values
                 grp1Options = getUniqueArray(filteredAOIOptions, 'GP1');
@@ -594,7 +839,7 @@ require([
                 break;
 
         }
-    }
+    }*/
 
     //function used several times in above switch case
     var appendSelectOptions = function(firstOptions, select1_ID, firstAOI, secondOptions, select2_ID, secondAOI){
