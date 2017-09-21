@@ -320,7 +320,7 @@ require([
             //ST SELECT CHANGED
             case 'st-select':
                 //filter the grp1- and grp3-select options using the selected ST__________________________________________________________________________________________________________________________________________
-                if (layerDefObj.AOI2) {
+                 if (layerDefObj.AOI2) {
                     $('#grp1-select').empty(); $('#grp3-select').empty();
                     filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST && s.GP2 === layerDefObj.AOI2; });  //grp2 AND ST have values
                 }
