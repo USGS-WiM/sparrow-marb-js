@@ -459,7 +459,7 @@ require([
                     if (selectedId == "st-select"){
                         // use aoi2 and aoi3
                         var response1 = threeAOIchosenUpdate('#grp2-select', 'ST', 'AOIST', 'GP3', 'AOI3', 'GP2', 'AOI2');//filter by st && aoi3
-                        var response2 = threeAOIchosenUpdate('#grp1-select', 'ST', 'AOIST', 'GP2', 'AOI2', 'GP3', 'AOI3');//filter by st && aoi2
+                        var response2 = threeAOIchosenUpdate('#grp3-select', 'ST', 'AOIST', 'GP2', 'AOI2', 'GP3', 'AOI3');//filter by st && aoi2
                   
                     } else if (selectedId == "grp2-select") {
                         //use st and aoi3
@@ -468,7 +468,7 @@ require([
                     } else {
                         // twas grp3-select
                         var response1 = threeAOIchosenUpdate('#st-select', 'GP3', 'AOI3', 'GP2', 'AOI2', 'ST', 'AOIST');//filter by aoi3 && aoi2
-                        var response2 = threeAOIchosenUpdate('#grp3-select', 'GP3', 'AOI3', 'ST', 'AOIST', 'GP2', 'AOI2');//filter by aoi3 && st
+                        var response2 = threeAOIchosenUpdate('#grp2-select', 'GP3', 'AOI3', 'ST', 'AOIST', 'GP2', 'AOI2');//filter by aoi3 && st
                     }
                 } else {
                     // st needs to be updated using the aoi1, aoi2, aoi3
@@ -485,7 +485,7 @@ require([
                     } else {
                         //twas grp3-select
                         var response1 = threeAOIchosenUpdate('#grp1-select', 'GP3', 'AOI3', 'GP2', 'AOI2', 'GP1', 'AOI1');//filter by aoi3 && aoi2
-                        var response2 = threeAOIchosenUpdate('#grp3-select', 'GP3', 'AOI3', 'GP1', 'AOI1', 'GP2', 'AOI2'); //filter by aoi3 && aoi1
+                        var response2 = threeAOIchosenUpdate('#grp2-select', 'GP3', 'AOI3', 'GP1', 'AOI1', 'GP2', 'AOI2'); //filter by aoi3 && aoi1
                     }
                 }
                 //nothing was filtered out of AllAOIOptions, bring them all along
