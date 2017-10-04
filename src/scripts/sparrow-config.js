@@ -10,7 +10,7 @@ var appTitle = "MARB Nutrient Loading";
 var appVersion = "v0.9.0";
 
 var serviceBaseURL = "http://gis.wim.usgs.gov/arcgis/rest/services/SparrowMARBV2/SparrowMARB/MapServer/"; //important! UPDATE rest service URL
-var chartUnits = " (kg/yr.)"
+var chartUnits = " (kg/yr.)";
 
 var groupResultsInitIndex = 1; //sets the default layer for the application.  In this case service layer 1 == HUC8.
 
