@@ -5398,6 +5398,7 @@ function AOIChange(e){
     generateRenderer();
 
     if( $("#chartWindowDiv").css("visibility") == "visible" ) {
+        $("#toast_title").html("Loading...");
         $("#toast_body").html("Chart updating");  
         $("#toast-fixed").fadeIn();
         

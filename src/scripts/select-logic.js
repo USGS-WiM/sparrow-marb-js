@@ -222,6 +222,7 @@ function AOIChange(e){
     generateRenderer();
 
     if( $("#chartWindowDiv").css("visibility") == "visible" ) {
+        $("#toast_title").html("Loading...");
         $("#toast_body").html("Chart updating");  
         $("#toast-fixed").fadeIn();
         
@@ -358,7 +359,6 @@ function getTableFields(headerKeysArr, sparrowLayerId){
     return htmlHeaderArr.join('');
 }
 
-
 function getLegendLabels(sparrowLayerId){
     var label = "";
     var configObject = app.getLayerConfigObject(sparrowLayerId);
@@ -448,6 +448,8 @@ function generateRenderer(){
         'esri/tasks/AlgorithmicColorRamp',
         'esri/tasks/GenerateRendererParameters',
         'esri/tasks/GenerateRendererTask',
+        'esri/tasks/query',
+        'esri/tasks/QueryTask',
         'dojo/dom',
         'dojo/dom-class',
         'dojo/on',
@@ -463,6 +465,8 @@ function generateRenderer(){
         AlgorithmicColorRamp,
         GenerateRendererParameters,
         GenerateRendererTask,
+        Query,
+        QueryTask,
         dom,
         domClass,
         on
@@ -477,10 +481,19 @@ function generateRenderer(){
             app.map.getLayer('SparrowRanking').setDefaultLayerDefinitions(); //is this necessary?
             app.layerDef = "1=1";
         }
-        
         //UPDATE important!  url must match serviceBaseURL in config
         app.Url = serviceBaseURL + sparrowId;
         
+        // get polygon count for global storage
+        var query = new Query();
+        var queryTask = new QueryTask(app.Url);
+        query.where = app.layerDef;
+        queryTask.executeForCount(query, function(count){
+            app.polygonResponseCount = count;
+          },function(error){
+            console.log(error);
+          });
+
         var selectedMetric = $('#displayedMetricSelect')[0].value;
         app.outFields = [selectedMetric];
         app.currentAttribute = selectedMetric; 
