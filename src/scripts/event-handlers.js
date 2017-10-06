@@ -13,6 +13,7 @@ function loadEventHandlers() {
 
         //reflow the chart if it's open
         if( $("#chartWindowDiv").css("visibility") == "visible" ) {
+            //$("#toast_title").html("Loading...");
             //$("#toast_body").html("Chart updating");  
             //$("#toast-fixed").fadeIn();  
  
@@ -117,7 +118,8 @@ function loadEventHandlers() {
         generateRenderer();
 
         if( $("#chartWindowDiv").css("visibility") == "visible" ) {
-            /*$("#toast_body").html("Chart updating");  
+            /*$("#toast_title").html("Loading...");
+            $("#toast_body").html("Chart updating");  
             $("#toast-fixed").fadeIn();*/
             app.createChartQuery();
         }
@@ -150,7 +152,8 @@ function loadEventHandlers() {
         generateRenderer();
 
         if( $("#chartWindowDiv").css("visibility") == "visible" ) {
-           /* $("#toast_body").html("Chart updating");  
+           /*$("#toast_title").html("Loading..."); 
+           $("#toast_body").html("Chart updating");  
             $("#toast-fixed").fadeIn();*/
             app.createChartQuery();
         }        
