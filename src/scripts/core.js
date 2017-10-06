@@ -194,22 +194,6 @@ require([
 
     // in event-handlers.js
     loadEventHandlers();
-    
-    if( typeof esri.layers.Layer.prototype._errorHandler == 'function' )  {  
-        esri.layers.Layer.prototype._errorHandler = function(error)  {  
-            if( error && error.message && error.message == "xhr cancelled" )  {
-                return;  
-                this.onError(error);  
-            }
-                
-        }  
-       
-        dojo.config.deferredOnError = function(e){}  
-        dojo._ioSetArgs2 = dojo._ioSetArgs;  
-        dojo._ioSetArgs = function(_14,_15,_16,_17)  {  
-        return dojo._ioSetArgs2(_14,_15,_16,function(a,b){return a;});  
-     }  
-    }  
 
     if( typeof esri.layers.Layer.prototype._errorHandler == 'function' )  {  
         esri.layers.Layer.prototype._errorHandler = function(error)  {  
