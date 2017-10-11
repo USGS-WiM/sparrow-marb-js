@@ -2982,7 +2982,8 @@ require([
     }//END createTableQuery()
 
     app.createChartQuery = function(optionalWhereClause){   
-        if (app.polygonResponseCount > 2500) {
+        //need to check if optionalWhereClause is provided -- this is an onclick or multiple click select event and the chart can be shown.
+        if (app.polygonResponseCount > 2500 && optionalWhereClause == undefined) {
             //don't show chart
             $("#toast_title").html("Warning");
             $("#toast_body").html("Cannot show chart for "+ app.polygonResponseCount + " features. Please narrow your data and try again.");  
