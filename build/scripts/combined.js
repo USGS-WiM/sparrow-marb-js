@@ -31,7 +31,7 @@ var appTitle = "MARB Nutrient Loading";
 var appVersion = "v0.9.0";
 
 var serviceBaseURL = "http://gis.wim.usgs.gov/arcgis/rest/services/SparrowMARBV2/SparrowMARB/MapServer/"; //important! UPDATE rest service URL
-var chartUnits = " (kg/yr.)"
+var chartUnits = " (kg/yr.)";
 
 var groupResultsInitIndex = 1; //sets the default layer for the application.  In this case service layer 1 == HUC8.
 
@@ -2092,8 +2092,6 @@ $( document ).ready(function() {
   $(".nav-title").html(appTitle);
 });
 
-
-
 require([
     'esri/arcgis/utils',
     'esri/map',
@@ -2182,6 +2180,7 @@ require([
     app.customChartClicked = false; // when custom chart button clicked, need to let the chart know to show 'Show Full Chart' button
     app.shiftKey = false; // store if they are selecting (click) or unselecting (shift+click)
     app.formattedHighlightString; // from custom defined chart click, store first view in case they zoom in and want to reset back to this
+    app.polygonResponseCount; // stores count of response that gets updated everytime the map refreshes (generateRenderer function)
 
     /* values come from config file */
     app.defaultMapCenter = mapCenter;
@@ -2275,6 +2274,22 @@ require([
 
     // in event-handlers.js
     loadEventHandlers();
+
+    if( typeof esri.layers.Layer.prototype._errorHandler == 'function' )  {  
+        esri.layers.Layer.prototype._errorHandler = function(error)  {  
+            if( error && error.message && error.message == "xhr cancelled" )  {
+                return;  
+                this.onError(error);  
+            }
+                
+        }  
+       
+        dojo.config.deferredOnError = function(e){}  
+        dojo._ioSetArgs2 = dojo._ioSetArgs;  
+        dojo._ioSetArgs = function(_14,_15,_16,_17)  {  
+        return dojo._ioSetArgs2(_14,_15,_16,function(a,b){return a;});  
+     }  
+    }  
 
     //fire initial query to populate AOIs
     //UPDATE IMPORTANT!  check layer and field names to make sure the fields exist in the service layers
@@ -2387,27 +2402,188 @@ require([
         return uniqueArray.sort();
     }
 
+    // called from app.updateAOIs when all for aois are selected. the one just updated is passed in and returns array of info needed several times
+    var fourAOIsSelected = function(selectedId){
+        var arrayForOther3AOIs = [];
+        var prop1 = ""; var select1 = ""; var whichAoi1 = ""; var filteredAOI1 = "";
+        var prop2 = ""; var select2 = ""; var whichAoi2 = ""; var filteredAOI2 = "";
+        var prop3 = ""; var select3 = ""; var whichAoi3 = ""; var filteredAOI3 = "";
+        switch(selectedId){
+            case "st-select":
+                $('#grp1-select').empty(); //filter by st, aoi2 & aoi3
+                filteredAOI1 = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST && s.GP2 == layerDefObj.AOI2 && s.GP3 === layerDefObj.AOI3; });
+                prop1 = "GP1"; select1 = "#grp1-select"; whichAoi1 = "AOI1";
+                $('#grp2-select').empty();  //filter by st, aoi1 & aoi3
+                filteredAOI2 = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST && s.GP1 == layerDefObj.AOI1 && s.GP3 === layerDefObj.AOI3; });
+                prop2 = "GP2"; select2 = "#grp2-select"; whichAoi2 = "AOI2";
+                $('#grp3-select').empty();  //filter by st, aoi1 & aoi2
+                filteredAOI3 = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST && s.GP1 == layerDefObj.AOI1 && s.GP2 === layerDefObj.AOI2; });
+                prop3 = "GP3"; select3 = "#grp3-select"; whichAoi3 = "AOI3";                
+                break;
+            case 'grp1-select':
+                // update st, aoi2, aoi3
+                $('#st-select').empty(); //filter by aoi1, aoi2, aoi3
+                filteredAOI1 = AllAOIOptions.filter(function(s){ return s.GP1 === layerDefObj.AOI1 && s.GP2 == layerDefObj.AOI2 && s.GP3 === layerDefObj.AOI3; });
+                prop1 = "ST"; select1 = "#st-select"; whichAoi1 = "AOIST";
+                $('#grp2-select').empty(); //filter by aoi1, st, aoi3
+                filteredAOI2 = AllAOIOptions.filter(function(s){ return s.GP1 === layerDefObj.AOI1 && s.ST == layerDefObj.AOIST && s.GP3 === layerDefObj.AOI3; });
+                prop2 = "GP2"; select2 = "#grp2-select"; whichAoi2 = "AOI2";
+                $('#grp3-select').empty(); //filter by aoi1, st, aoi2
+                filteredAOI3 = AllAOIOptions.filter(function(s){ return s.GP1 === layerDefObj.AOI1 && s.ST == layerDefObj.AOIST && s.GP2 === layerDefObj.AOI2; });
+                prop3 = "GP3"; select3 = "#grp3-select"; whichAoi3 = "AOI3";                
+                break;
+            case 'grp2-select':
+                // update st, aoi1, aoi3
+                $('#st-select').empty(); //filter by aoi2, aoi1, aoi3
+                filteredAOI1 = AllAOIOptions.filter(function(s){ return s.GP2 === layerDefObj.AOI2 && s.GP1 == layerDefObj.AOI1 && s.GP3 === layerDefObj.AOI3; });
+                prop1 = "ST"; select1 = "#st-select"; whichAoi1 = "AOIST";
+                $('#grp1-select').empty(); //filter by aoi2, st, aoi3
+                filteredAOI2 = AllAOIOptions.filter(function(s){ return s.GP2 === layerDefObj.AOI2 && s.ST == layerDefObj.AOIST && s.GP3 === layerDefObj.AOI3; });
+                prop2 = "GP1"; select2 = "#grp1-select"; whichAoi2 = "AOI1";
+                $('#grp3-select').empty(); //filter by aoi2, st, aoi1
+                filteredAOI3 = AllAOIOptions.filter(function(s){ return s.GP2 === layerDefObj.AOI2 && s.ST == layerDefObj.AOIST && s.GP1 === layerDefObj.AOI1; });
+                prop3 = "GP3"; select3 = "#grp3-select"; whichAoi3 = "AOI3";
+                break;
+            case 'grp3-select':
+                //grp3-select was just updated  // update st, aoi1, aoi2
+                $('#st-select').empty();  // filter by aoi3, aoi1, aoi2
+                filteredAOI1 = AllAOIOptions.filter(function(s){ return s.GP3 === layerDefObj.AOI3 && s.GP1 == layerDefObj.AOI1 && s.GP2 === layerDefObj.AOI2; });
+                prop1 = "ST"; select1 = "#st-select"; whichAoi1 = "AOIST";
+                $('#grp1-select').empty();  // filter by aoi3, st, aoi2
+                filteredAOI2 = AllAOIOptions.filter(function(s){ return s.GP3 === layerDefObj.AOI3 && s.ST == layerDefObj.AOIST && s.GP2 === layerDefObj.AOI2; });
+                prop2 = "GP1"; select2 = "#grp1-select"; whichAoi2 = "AOI1";
+                $('#grp2-select').empty();  // filter by aoi3, st, aoi1
+                filteredAOI3 = AllAOIOptions.filter(function(s){ return s.GP3 === layerDefObj.AOI3 && s.ST == layerDefObj.AOIST && s.GP1 === layerDefObj.AOI1; });
+                prop3 = "GP2"; select3 = "#grp2-select"; whichAoi3 = "AOI2";
+                break;
+        }
+        arrayForOther3AOIs = [ 
+            { filterAOIs: filteredAOI1, prop: prop1, select: select1, whichAOI: whichAoi1},
+            { filterAOIs: filteredAOI2, prop: prop2, select: select2, whichAOI: whichAoi2},
+            { filterAOIs: filteredAOI3, prop: prop3, select: select3, whichAOI: whichAoi3}
+        ];
+        return arrayForOther3AOIs;        
+    }
+
+    // called from app.updateAOIs when 3 are selected. returns object containing info needed many times
+    var threeAOIchosenUpdate = function(clearSelect, allAOIprop1, layerDef1, allAOIprop2, layerDef2, setSelect, setAOI){
+        var returnArray = {};
+        $(clearSelect).empty(); // filter by st && aoi2
+        var options = AllAOIOptions.filter(function(s){ return s[allAOIprop1] == layerDefObj[layerDef1] && s[allAOIprop2] == layerDefObj[layerDef2]; });         
+        returnArray = {filteredAOIOptions: options, prop: clearSelect, select: setSelect, AOI: setAOI };
+        return returnArray;
+    }
+
+    // called from app.updateAOIs when 2 are selected. returns object containing info needed many times
+    var twoAOIchosenUpdate = function (clearSelect, allAOIprop1, layerDef1, setSelect, setAOI){
+        var returnArray = {};
+        $(clearSelect).empty();
+        var Options = AllAOIOptions.filter(function(s){ return s[allAOIprop1] == layerDefObj[layerDef1];});
+        returnArray = {filteredAOIOptions: Options, prop: clearSelect, select: setSelect, AOI: setAOI };
+        return returnArray;
+        //extraProp = "GP3"; extraSelect = "#grp3-select"; extraLayerDef = "AOI3";
+    }
+    
     app.updateAOIs = function(selectedId){
         // for four AOI options
         var filteredAOIOptions = [];
 
-        var grp3Options = [];
-        var grp2Options = [];
-        var grp1Options = [];
-        var stOptions = [];
+        switch(Object.keys(app.getLayerDefObj()).length) {
+            case 4: 
+                var responseArray = fourAOIsSelected(selectedId); // returns array containing objects {filteredAOIs, prop, select, whichAOI}
 
-        switch(selectedId) {
-            //ST SELECT CHANGED
-            case 'st-select':
-                //filter the grp1- and grp3-select options using the selected ST__________________________________________________________________________________________________________________________________________
-                if (layerDefObj.AOI2) {
-                    $('#grp1-select').empty(); $('#grp3-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST && s.GP2 === layerDefObj.AOI2; });  //grp2 AND ST have values
+                var theseOptions1 = getUniqueArray(responseArray[0].filterAOIs, responseArray[0].prop);
+                var theseOptions2 = getUniqueArray(responseArray[1].filterAOIs, responseArray[1].prop);
+                var theseOptions3 = getUniqueArray(responseArray[2].filterAOIs, responseArray[2].prop);
+
+                appendSelectOptions(theseOptions1, responseArray[0].select, responseArray[0].whichAOI);
+                appendSelectOptions(theseOptions2, responseArray[1].select, responseArray[1].whichAOI);
+                appendSelectOptions(theseOptions3, responseArray[2].select, responseArray[2].whichAOI);
+                break;
+            case 3:
+                //3 dropdowns are chosen, just update the one that's not ( and the other 2 that are, that are not this one that just got changed )
+                var whichProp = ""; var whichSelect = ""; var whichAOI = "";
+                var response1 = {};
+                var response2 = {};
+                //which one isn't chosen
+                if (!layerDefObj.AOI3) {
+                    // aoi3 needs to be updated using st, aoi1, aoi2
+                    $('#grp3-select').empty(); 
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST == layerDefObj.AOIST && s.GP1 == layerDefObj.AOI1 && s.GP2 === layerDefObj.AOI2; });
+                    whichProp = "GP3"; whichSelect = "#grp3-select"; whichAOI = "AOI3";
+                    // which one was just upodated? Update the other 2 that are selected too
+                    if (selectedId == "st-select") {
+                        //use aoi1 & aoi2                        
+                        var response1 = threeAOIchosenUpdate('#grp1-select', 'ST', 'AOIST', 'GP2', 'AOI2', 'GP1', 'AOI1');// filter by st && aoi2
+                        var response2 = threeAOIchosenUpdate('#grp2-select', 'ST', 'AOIST', 'GP1', 'AOI1', 'GP2', 'AOI2');// filter by st && aoi1                       
+                    } else if (selectedId == "grp1-select"){
+                        //use st & aoi2
+                        var response1 = threeAOIchosenUpdate('#st-select', 'GP1', 'AOI1', 'GP2', 'AOI2', 'ST', 'AOIST');// filter by aoi1 && aoi2
+                        var response2 = threeAOIchosenUpdate('#grp2-select', 'GP1', 'AOI1', 'ST', 'AOIST', 'GP2', 'AOI2');// filter by aoi1 && st
+                    } else {
+                        //twas grp2-select   use st & aoi1
+                        var response1 = threeAOIchosenUpdate('#st-select', 'GP2', 'AOI2', 'GP1', 'AOI1', 'ST', 'AOIST');//filter by aio2 && aoi1
+                        var response2 = threeAOIchosenUpdate('#grp1-select', 'GP2', 'AOI2', 'ST', 'AOIST', 'GP1', 'AOI1'); //filter by aoi2 && st
+                    }
                 }
-                else {
-                    $('#grp1-select').empty(); $('#grp3-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST; });
+                else if (!layerDefObj.AOI2) {
+                    // aoi2 needs to be updated using the st, aoi1, aoi3
+                    $('#grp2-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST && s.GP1 == layerDefObj.AOI1 && s.GP3 === layerDefObj.AOI3; });
+                    whichProp = "GP2"; whichSelect = "#grp2-select"; whichAOI = "AOI2";
+                    // which one was just upodated? Update the other 2 that are selected too
+                    if (selectedId == "st-select"){
+                        // use aoi1 and aoi3
+                        var response1 = threeAOIchosenUpdate('#grp1-select', 'ST', 'AOIST', 'GP3', 'AOI3', 'GP1', 'AOI1'); //filter by st && aoi3
+                        var response2 = threeAOIchosenUpdate('#grp3-select', 'ST', 'AOIST', 'GP1', 'AOI1', 'GP3', 'AOI3'); //filter by st && aoi1                        
+                    } else if (selectedId == "grp1-select"){
+                        // use st and aoi3
+                        var response1 = threeAOIchosenUpdate('#st-select', 'GP1', 'AOI1', 'GP3', 'AOI3', 'ST', 'AOIST');//filter by aoi1 && aoi3
+                        var response2 = threeAOIchosenUpdate('#grp3-select', 'GP1', 'AOI1', 'ST', 'AOIST', 'GP3', 'AOI3'); //filter by aoi1 && st
+                    } else {
+                        // twas grp3-select  use st and aoi1
+                        var response1 = threeAOIchosenUpdate('#st-select', 'GP3', 'AOI3', 'GP1', 'AOI1', 'ST', 'AOIST');// filter by aoi3 && aoi1
+                        var response2 = threeAOIchosenUpdate('#grp1-select', 'GP3', 'AOI3', 'ST', 'AOIST', 'GP1', 'AOI1');// filter by aoi3 && st
+                    }
+                } else  if (!layerDefObj.AOI1) {
+                    // aoi1 needs to be updated using st, aoi2, aoi3
+                    $('#grp1-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST && s.GP2 == layerDefObj.AOI2 && s.GP3 === layerDefObj.AOI3; });
+                    whichProp = "GP1"; whichSelect = "#grp1-select"; whichAOI = "AOI1";
+                    // which one was just upodated? Update the other 2 that are selected too
+                    if (selectedId == "st-select"){
+                        // use aoi2 and aoi3
+                        var response1 = threeAOIchosenUpdate('#grp2-select', 'ST', 'AOIST', 'GP3', 'AOI3', 'GP2', 'AOI2');//filter by st && aoi3
+                        var response2 = threeAOIchosenUpdate('#grp3-select', 'ST', 'AOIST', 'GP2', 'AOI2', 'GP3', 'AOI3');//filter by st && aoi2
+                  
+                    } else if (selectedId == "grp2-select") {
+                        //use st and aoi3
+                        var response1 = threeAOIchosenUpdate('#st-select', 'GP2', 'AOI2', 'GP3', 'AOI3', 'ST', 'AOIST');//filter by st && aoi3
+                        var response2 = threeAOIchosenUpdate('#grp3-select', 'GP2', 'AOI2', 'ST', 'AOIST', 'GP3', 'AOI3');//filter by st && aoi2                   
+                    } else {
+                        // twas grp3-select
+                        var response1 = threeAOIchosenUpdate('#st-select', 'GP3', 'AOI3', 'GP2', 'AOI2', 'ST', 'AOIST');//filter by aoi3 && aoi2
+                        var response2 = threeAOIchosenUpdate('#grp2-select', 'GP3', 'AOI3', 'ST', 'AOIST', 'GP2', 'AOI2');//filter by aoi3 && st
+                    }
+                } else {
+                    // st needs to be updated using the aoi1, aoi2, aoi3
+                    $('#st-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP1 === layerDefObj.AOI1 && s.GP2 == layerDefObj.AOI2 && s.GP3 === layerDefObj.AOI3; });
+                    whichProp = "ST"; whichSelect = "#st-select"; whichAOI = "AOIST";
+                    // which one was just upodated? Update the other 2 that are selected too
+                    if (selectedId == "grp1-select"){
+                        var response1 = threeAOIchosenUpdate('#grp2-select', 'GP1', 'AOI1', 'GP3', 'AOI3', 'GP1', 'AOI1'); // filter by aoi1 && aoi3
+                        var response2 = threeAOIchosenUpdate('#grp3-select', 'GP1', 'AOI1', 'GP2', 'AOI2', 'GP3', 'AOI3'); //filter by aoi1 && aoi2
+                    } else if (selectedId == "grp2-select"){
+                        var response1 = threeAOIchosenUpdate('#grp1-select', 'GP2', 'AOI2', 'GP3', 'AOI3', 'GP1', 'AOI1');//filter by aoi2 && aoi3
+                        var response2 = threeAOIchosenUpdate('#grp3-select', 'GP2', 'AOI2', 'GP1', 'AOI1', 'GP3', 'AOI3'); //filter by aoi2 && aoi1
+                    } else {
+                        //twas grp3-select
+                        var response1 = threeAOIchosenUpdate('#grp1-select', 'GP3', 'AOI3', 'GP2', 'AOI2', 'GP1', 'AOI1');//filter by aoi3 && aoi2
+                        var response2 = threeAOIchosenUpdate('#grp2-select', 'GP3', 'AOI3', 'GP1', 'AOI1', 'GP2', 'AOI2'); //filter by aoi3 && aoi1
+                    }
                 }
+                //nothing was filtered out of AllAOIOptions, bring them all along
                 if (filteredAOIOptions.length === 0) {
                     filteredAOIOptions = AllAOIOptions;
                 }
@@ -2415,290 +2591,177 @@ require([
                 /*______________________________________________________
                     filteredAOIOptions Array of Objects Example         ]
                 [{                                                      ]
-                    GP1: "Conasauga River",                       ]
+                    GP1: "Conasauga River",                             ]
                     GRP_2_NAM: "03150101",                              ]
-                    GP3:"0315010101",                             ]
+                    GP3:"0315010101",                                   ]
                     ST:"GA"   <--- Selected State                       ]
                 },                                                      ]
                 {                                                       ]
-                    GP1: "Conasauga River",                       ]
+                    GP1: "Conasauga River",                             ]
                     GRP_2_NAM: "03150101",                              ]
-                    GP3:"0315010102",  <-- Obj for every HUC10    ]
+                    GP3:"0315010102",  <-- Obj for every HUC10          ]
                     ST:"GA"                                             ]
                 }]                                                      ]
                 ________________________________________________________]
                 */
 
-                //get unique group 1 values
-                grp1Options = getUniqueArray(filteredAOIOptions, 'GP1');
-                grp3Options = getUniqueArray(filteredAOIOptions, 'GP3');
-
+                //get unique group values                
+                var theseOptions = getUniqueArray(filteredAOIOptions, whichProp);
+                var extra1Options = getUniqueArray(response1.filteredAOIOptions, response1.select);
+                var extra2Options = getUniqueArray(response2.filteredAOIOptions, response2.select);
                 //set other two AOI options and reselect if previously selected
-                appendSelectOptions(grp1Options, '#grp1-select', 'AOI1', grp3Options, '#grp3-select', 'AOI3');
-
-                //filter the grp2- and grp3-select options using the selected ST__________________________________________________________________________________________________________________________________________
-                filteredAOIOptions = [];
-                //need to know if ST and grp1 have values
-                if (layerDefObj.AOI1) {
-                    $('#grp2-select').empty(); $('#grp3-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST && s.GP1 === layerDefObj.AOI1; }); //ST and grp1 have selected vals
-                }
-                else {
-                    $('#grp2-select').empty(); $('#grp3-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST; });
-                }
-                if (filteredAOIOptions.length === 0) {
-                    filteredAOIOptions = AllAOIOptions;
-                }
-
-                //get unique group2 and group3 values
-                grp2Options = getUniqueArray(filteredAOIOptions, 'GP2');
-                grp3Options = getUniqueArray(filteredAOIOptions, 'GP3')
-
-                //set other two AOI options and reselect if previously selected
-                appendSelectOptions(grp2Options, '#grp2-select', 'AOI2', grp3Options, '#grp3-select', 'AOI3');
-
-                //filter the grp1- and grp2-select options using the selected ST__________________________________________________________________________________________________________________________________________
-                filteredAOIOptions = [];
-                //need to know if ST and grp1 have values
-                if (layerDefObj.AOI3) {
-                    $('#grp1-select').empty(); $('#grp2-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST && s.GP3 === layerDefObj.AOI3; }); //ST and grp3 have selected vals
-                }
-                else {
-                    $('#grp1-select').empty(); $('#grp2-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST; });
-                }
-                if (filteredAOIOptions.length === 0) {
-                    filteredAOIOptions = AllAOIOptions;
-                }
-
-                //get unique group2 and group3 values
-                grp1Options = getUniqueArray(filteredAOIOptions, 'GP1');
-                grp2Options = getUniqueArray(filteredAOIOptions, 'GP2');
-
-                //set other two AOI options and reselect if previously selected
-                appendSelectOptions(grp1Options, '#grp1-select', 'AOI1', grp2Options, '#grp2-select', 'AOI2');
+                appendSelectOptions(theseOptions, whichSelect, whichAOI);
+                appendSelectOptions(extra1Options, response1.prop, response1.AOI);
+                appendSelectOptions(extra2Options, response2.prop, response2.AOI);
                 break;
-
-            //Group 1 SELECT CHANGED
-            case 'grp1-select':
-                //filter the st- and grp3-select options using the selected GRP1__________________________________________________________________________________________________________________________________________
-                if (layerDefObj.AOI2) {
-                    $('#st-select').empty(); $('#grp3-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP2 === layerDefObj.AOI2 && s.GP1 === layerDefObj.AOI1; });
-                }
-                else {
-                    $('#st-select').empty(); $('#grp3-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP1 === layerDefObj.AOI1; });
-                }
-                if (filteredAOIOptions.length === 0) {
-                    filteredAOIOptions = AllAOIOptions;
-                }
-
-                //get unique states in the selected grp1
-                stOptions = getUniqueArray(filteredAOIOptions, 'ST');
-                grp3Options = getUniqueArray(filteredAOIOptions, 'GP3');
-
-                //set other two AOI options and reselect if previously selected
-                appendSelectOptions(stOptions, '#st-select', 'AOIST', grp3Options, '#grp3-select', 'AOI3');
-
-                //filter the grp2- and grp3-select options using the selected GRP1__________________________________________________________________________________________________________________________________________
-                filteredAOIOptions = [];
-                //need to know if gr1 and st have values
-                if (layerDefObj.AOIST) {
-                    $('#grp2-select').empty(); $('#grp3-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP1 == layerDefObj.AOI1 && s.ST == layerDefObj.AOIST; }); //ST and Grp1 have selected vals
-                }
-                else {
-                    $('#grp2-select').empty(); $('#grp3-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP1 == layerDefObj.AOI1 });
-                }
-                if (filteredAOIOptions.length == 0) {
-                    filteredAOIOptions = AllAOIOptions;
-                }
-
-                //get unique group2 options from the grp1 selection
-                grp2Options = getUniqueArray(filteredAOIOptions, 'GP2');
-                grp3Options = getUniqueArray(filteredAOIOptions, 'GP3');
-
-                //set other two AOI options and reselect if previously selected
-                appendSelectOptions(grp2Options, '#grp2-select', 'AOI2', grp3Options, '#grp3-select', 'AOI3');
-
-                //filter the grp2- and st-select options using the selected GRP1__________________________________________________________________________________________________________________________________________
-                filteredAOIOptions = [];
-                //need to know if ST and grp1 have values
-                if (layerDefObj.AOI3) {
-                    $('#grp2-select').empty(); $('#st-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP1 === layerDefObj.AOI1 && s.GP3 === layerDefObj.AOI3; }); //ST and grp3 have selected vals
-                }
-                else {
-                    $('#grp2-select').empty(); $('#st-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP1 === layerDefObj.AOI1; });
-                }
-                if (filteredAOIOptions.length === 0) {
-                    filteredAOIOptions = AllAOIOptions;
-                }
-
-                //get unique group2 and group3 values
-                grp2Options = getUniqueArray(filteredAOIOptions, 'GP2');
-                stOptions = getUniqueArray(filteredAOIOptions, 'ST');
-
-                //set other two AOI options and reselect if previously selected
-                appendSelectOptions(grp2Options, '#grp2-select', 'AOI2', stOptions, '#st-select', 'AOIST');
-                break;
-
-            //Group 2 SELECT CHANGED
-            case 'grp2-select':
-                //filter the grp1- and grp3-select options using the selected GRP2__________________________________________________________________________________________________________________________________________
-                if (layerDefObj.AOIST) {
-                    $('#grp1-select').empty(); $('#grp3-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP2 === layerDefObj.AOI2 && s.ST === layerDefObj.AOIST; });
-                }
-                else {
-                    $('#grp1-select').empty(); $('#grp3-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP2 === layerDefObj.AOI2; });
-                }
-                if (filteredAOIOptions.length === 0) {
-                    filteredAOIOptions = AllAOIOptions;
-                }
-
-                grp1Options = getUniqueArray(filteredAOIOptions, 'GP1');
-                grp3Options = getUniqueArray(filteredAOIOptions, 'GP3');
-
-                //set other two AOI options and reselect if previously selected
-                appendSelectOptions(grp1Options, '#grp1-select', 'AOI1', grp3Options, '#grp3-select', 'AOI3');
-
-                filteredAOIOptions= [];
-                //filter the st- and grp3-select options using the selected GRP2__________________________________________________________________________________________________________________________________________
-                if (layerDefObj.AOI1) {
-                    $('#st-select').empty(); $('#grp3-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP2 === layerDefObj.AOI2 && s.GP1 === layerDefObj.AOI1; });
-                }
-                else {
-                    $('#st-select').empty(); $('#grp3-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP2 === layerDefObj.AOI2; });
-                }
-                if (filteredAOIOptions.length == 0) {
-                    filteredAOIOptions = AllAOIOptions;
-                }
-
-                stOptions = getUniqueArray(filteredAOIOptions, 'ST');
-                grp3Options = getUniqueArray(filteredAOIOptions, 'GP3');
-
-                //set other two AOI options and reselect if previously selected
-                appendSelectOptions(stOptions, '#st-select', 'AOIST', grp3Options, '#grp3-select', 'AOI3');
-
-                //filter the grp1- and st-select options using the selected GRP2__________________________________________________________________________________________________________________________________________
-                filteredAOIOptions = [];
-                //need to know if ST and grp1 have values
-                if (layerDefObj.AOI3) {
+            case 2:
+                var response1 = {};
+                var firstProp = ""; var firstOptions = ""; var firstSelect = ""; var firstLayerDef = "";
+                var secondProp = ""; var secondOptions = ""; var secondSelect = ""; var secondLayerDef = "";                
+                //2 dropdowns are chosen, just update the other 2 that's not
+                //which 2 are not chosen
+                if (!layerDefObj.AOIST && !layerDefObj.AOI1) {
+                    //st and aoi1 need to be updated using aoi2 and aoi3
                     $('#st-select').empty(); $('#grp1-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP2 === layerDefObj.AOI2 && s.GP3 === layerDefObj.AOI3; }); //ST and grp3 have selected vals
-                }
-                else {
-                    $('#st-select').empty(); $('#grp1-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP2 === layerDefObj.AOI2; });
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP2 === layerDefObj.AOI2 && s.GP3 == layerDefObj.AOI3; });
+                    //also reupdate the one that is not selectedId ('grp2-select' or 'grp3-select' )
+                    if (selectedId == "grp2-select"){
+                        response1 = twoAOIchosenUpdate('#grp3-select', 'GP2', 'AOI2', 'GP3', 'AOI3'); 
+                    } else {
+                        response1 = twoAOIchosenUpdate('#grp2-select', 'GP3', 'AOI3', 'GP2', 'AOI2'); 
+                    }
+                    firstProp = "ST"; firstSelect = "#st-select"; firstLayerDef = "AOIST";
+                    secondProp = "GP1"; secondSelect = "#grp1-select"; secondLayerDef = "AOI1";
+                } else if (!layerDefObj.AOIST && !layerDefObj.AOI2) {
+                    //st and aoi2 need to be updated using aoi1 and aoi3
+                    $('#st-select').empty(); $('#grp2-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP1 === layerDefObj.AOI1 && s.GP3 == layerDefObj.AOI3; });
+                    //also reupdate the one that is not selectedId ('grp1-select' or 'grp3-select' )
+                    if (selectedId == "grp1-select"){
+                        response1 = twoAOIchosenUpdate('#grp3-select', 'GP1', 'AOI1', 'GP3', 'AOI3');
+                    } else {
+                        response1 = twoAOIchosenUpdate('#grp1-select', 'GP3', 'AOI3', 'GP1', 'AOI1');
+                    }
+                    firstProp = "ST"; firstSelect = "#st-select"; firstLayerDef = "AOIST";
+                    secondProp = "GP2"; secondSelect = "#grp2-select"; secondLayerDef = "AOI2";
+                } else if (!layerDefObj.AOIST && !layerDefObj.AOI3) {
+                    //st and aoi3 need to be updated using aoi1 and aoi2
+                    $('#st-select').empty(); $('#grp3-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP1 === layerDefObj.AOI1 && s.GP2 == layerDefObj.AOI2; });
+                    //also reupdate the one that is not selectedId ('grp1-select' or 'grp2-select' )
+                    if (selectedId == "grp1-select"){
+                        response1 = twoAOIchosenUpdate('#grp2-select', 'GP1', 'AOI1', 'GP2', 'AOI2');
+                    } else {
+                        response1 = twoAOIchosenUpdate('#grp1-select', 'GP2', 'AOI2', 'GP1', 'AOI1');
+                    }
+                    firstProp = "ST"; firstSelect = "#st-select"; firstLayerDef = "AOIST";
+                    secondProp = "GP3"; secondSelect = "#grp3-select"; secondLayerDef = "AOI3";
+                } else if (!layerDefObj.AOI1 && !layerDefObj.AOI2) {                     
+                    //aoi1 and aoi2 need to be updated using st and aoi3
+                    $('#grp1-select').empty(); $('#grp2-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST && s.GP3 == layerDefObj.AOI3; });
+                    //also reupdate the one that is not selectedId ('st-select' or 'grp3-select' )
+                    if (selectedId == "st-select"){
+                        response1 = twoAOIchosenUpdate('#grp3-select', 'ST', 'AOIST', 'GP3', 'AOI3');
+                    } else {
+                        response1 = twoAOIchosenUpdate('#st-select', 'GP3', 'AOI3', 'ST', 'AOIST');
+                    }
+                    firstProp = "GP1"; firstSelect = "#grp1-select"; firstLayerDef = "AOI1";
+                    secondProp = "GP2"; secondSelect = "#grp2-select"; secondLayerDef = "AOI2";
+                } else if (!layerDefObj.AOI1 && !layerDefObj.AOI3) {
+                    //aoi1 and aoi3 need to be updated using st and aoi2
+                    $('#grp1-select').empty(); $('#grp3-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST && s.GP2 == layerDefObj.AOI2; });
+                    //also reupdate the one that is not selectedId ('st-select' or 'grp2-select' )
+                    if (selectedId == "st-select"){
+                        response1 = twoAOIchosenUpdate('#grp2-select', 'ST', 'AOIST', 'GP2', 'AOI2');                     
+                    } else {
+                        response1 = twoAOIchosenUpdate('#st-select', 'GP2', 'AOI2', 'ST', 'AOIST');
+                    }
+                    firstProp = "GP1"; firstSelect = "#grp1-select"; firstLayerDef = "AOI1";
+                    secondProp = "GP3"; secondSelect = "#grp3-select"; secondLayerDef = "AOI3";
+                } else if (!layerDefObj.AOI2 && !layerDefObj.AOI3) {
+                    //aoi2 and aoi3 need to be updated using st and aoi1
+                    $('#grp2-select').empty(); $('#grp3-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST && s.GP1 == layerDefObj.AOI1; });
+                    //also reupdate the one that is not selectedId ('st-select' or 'grp1-select' )
+                    if (selectedId == "st-select"){
+                        response1 = twoAOIchosenUpdate('#grp1-select', 'ST', 'AOIST', 'GP1', 'AOI1');
+                    } else {
+                        response1 = twoAOIchosenUpdate('#st-select', 'GP1', 'AOI1', 'ST', 'AOIST');
+                    }
+                    firstProp = "GP2"; firstSelect = "#grp2-select"; firstLayerDef = "AOI2";
+                    secondProp = "GP3"; secondSelect = "#grp3-select"; secondLayerDef = "AOI3";
                 }
                 if (filteredAOIOptions.length === 0) {
                     filteredAOIOptions = AllAOIOptions;
                 }
 
-                //get unique group2 and group3 values
-                grp1Options = getUniqueArray(filteredAOIOptions, 'GP1');
-                stOptions = getUniqueArray(filteredAOIOptions, 'ST');
-
+                //get unique arrays
+                var arrayOptions = getUniqueArray(filteredAOIOptions, firstProp);
+                var theseOptions = getUniqueArray(filteredAOIOptions, secondProp);
+                var extraOptions = getUniqueArray(response1.filteredAOIOptions, response1.select);
                 //set other two AOI options and reselect if previously selected
-                appendSelectOptions(grp1Options, '#grp1-select', 'AOI1', stOptions, '#st-select', 'AOIST');
-                break;
-            // Group 3 SELECT CHANGED
-            case 'grp3-select':
-                //filter the grp1- and grp2-select options using the selected GRP3__________________________________________________________________________________________________________________________________________
+                appendSelectOptions(arrayOptions, firstSelect, firstLayerDef);
+                appendSelectOptions(theseOptions, secondSelect, secondLayerDef);
+                appendSelectOptions(extraOptions, response1.prop, response1.AOI);
+                     
+                break;            
+            case 1:
+                var otherThree = []; var threeSelects = []; var threeAOIs = [];
+                //1 dropdown is chosen, update the other 3 that's not
+                //which 1 is chosen
                 if (layerDefObj.AOIST) {
-                    $('#grp1-select').empty();  $('#grp2-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP3 === layerDefObj.AOI3 && s.ST === layerDefObj.AOIST; });
+                    // state is chosen, update aoi1, aoi2, aoi3
+                    $('#grp1-select').empty(); $('#grp2-select').empty(); $('#grp3-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST });
+                    otherThree = ["GP1", "GP2", "GP3"]; threeSelects = ["#grp1-select", "#grp2-select", "#grp3-select"]; threeAOIs = ["AOI1", "AOI2", "AOI3"];
                 }
-                else {
-                    $('#grp1-select').empty();  $('#grp2-select').empty();
+                else if (layerDefObj.AOI1) {
+                    // aoi1 is chosen, update st, aoi2, aoi3
+                    $('#st-select').empty(); $('#grp2-select').empty(); $('#grp3-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP1 === layerDefObj.AOI1; });
+                    otherThree = ["ST", "GP2", "GP3"]; threeSelects = ["#st-select", "#grp2-select", "#grp3-select"]; threeAOIs = ["AOIST", "AOI2", "AOI3"];
+                } else if (layerDefObj.AOI2) {
+                    // aoi2 is chosen, update st, aoi1, aoi3
+                    $('#st-select').empty(); $('#grp1-select').empty(); $('#grp3-select').empty();
+                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP2 === layerDefObj.AOI2; });
+                    otherThree = ["ST", "GP1", "GP3"]; threeSelects = ["#st-select", "#grp1-select", "#grp3-select"]; threeAOIs = ["AOIST", "AOI1", "AOI3"];
+                }else if (layerDefObj.AOI3) {
+                    // aoi3 is chosen, update st, aoi1, aoi2
+                    $('#st-select').empty(); $('#grp1-select').empty(); $('#grp2-select').empty();
                     filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP3 === layerDefObj.AOI3; });
+                    otherThree = ["ST", "GP1", "GP2"]; threeSelects = ["#st-select", "#grp1-select", "#grp2-select"]; threeAOIs = ["AOIST", "AOI1", "AOI2"];
                 }
                 if (filteredAOIOptions.length === 0) {
                     filteredAOIOptions = AllAOIOptions;
                 }
-
-                grp1Options = getUniqueArray(filteredAOIOptions, 'GP1');
-                grp2Options = getUniqueArray(filteredAOIOptions, 'GP2');
-
-                //set other two AOI options and reselect if previously selected
-                appendSelectOptions(grp1Options, '#grp1-select', 'AOI1', grp2Options, '#grp2-select', 'AOI2');
-
-                filteredAOIOptions= [];
-                //filter the st- and grp2-select options using the selected GRP3__________________________________________________________________________________________________________________________________________
-                if (layerDefObj.AOI1) {
-                    $('#st-select').empty();  $('#grp2-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP3 === layerDefObj.AOI3 && s.GP1 === layerDefObj.AOI1; });
+                for (var i = 0; i < 4; i++){
+                    var options = getUniqueArray(filteredAOIOptions, otherThree[i]);
+                    appendSelectOptions(options, threeSelects[i], threeAOIs[i]);
                 }
-                else {
-                    $('#st-select').empty();  $('#grp2-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP3 === layerDefObj.AOI3; });
-                }
-                if (filteredAOIOptions.length == 0) {
-                    filteredAOIOptions = AllAOIOptions;
-                }
-
-                stOptions = getUniqueArray(filteredAOIOptions, 'ST');
-                grp2Options = getUniqueArray(filteredAOIOptions, 'GP2');
-                //set other two AOI options and reselect if previously selected
-                appendSelectOptions(stOptions, '#st-select', 'AOIST', grp2Options, '#grp2-select', 'AOI2');
-
-
-                filteredAOIOptions = [];
-                //filter the st- and grp1-select options using the selected GRP3__________________________________________________________________________________________________________________________________________
-                if (layerDefObj.AOI2) {
-                    $('#st-select').empty();  $('#grp1-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP3 === layerDefObj.AOI3 && s.GP2 === layerDefObj.AOI2; }); //ST and grp3 have selected vals
-                }
-                else {
-                    $('#st-select').empty();  $('#grp1-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.GP3 === layerDefObj.AOI3; });
-                }
-                if (filteredAOIOptions.length === 0) {
-                    filteredAOIOptions = AllAOIOptions;
-                }
-
-                //get unique group2 and group3 values
-                grp1Options = getUniqueArray(filteredAOIOptions, 'GP1');
-                stOptions = getUniqueArray(filteredAOIOptions, 'ST');
-                //set other two AOI options and reselect if previously selected
-                appendSelectOptions(grp1Options, '#grp1-select', 'AOI1', stOptions, '#st-select', 'AOIST');
+                break;            
+            case 0:
+                //none are chosen, get everything
+                //reset the selects
+                $('.aoiSelect').selectpicker('val', '');  
+                app.clearLayerDefObj();
                 break;
 
         }
     }
 
     //function used several times in above switch case
-    var appendSelectOptions = function(firstOptions, select1_ID, firstAOI, secondOptions, select2_ID, secondAOI){
+    var appendSelectOptions = function(firstOptions, select1_ID, firstAOI){
         //set the filtered state options
         $.each(firstOptions, function(index, option){
             $(select1_ID).append(new Option(option));
         });
         $(select1_ID).selectpicker('refresh');
-        //set the filtered grp3 options
-        $.each(secondOptions, function(index, option){
-
-            $(select2_ID).append(new Option(option));
-
-        });
-        $(select2_ID).selectpicker('refresh');
-
-        //if something in grp2 (HUC8) AOI was selected previously, programatically select the previously correct option
+        //if something in there was selected previously, programatically select the previously correct option
         if(layerDefObj[firstAOI]){
             $(select1_ID).selectpicker('val', layerDefObj[firstAOI]);
-        }
-
-        if(layerDefObj[secondAOI]){
-            $(select2_ID).selectpicker('val', layerDefObj[secondAOI]);
-        }
+        };        
     };
 
     app.initMapScale = function() {
@@ -2919,62 +2982,70 @@ require([
     }//END createTableQuery()
 
     app.createChartQuery = function(optionalWhereClause){   
-        
-        if( $("#chartWindowDiv").css("visibility") != "visible" ) {
-           $('#chartWindowDiv').css({
-                'visibility': 'visible',
-                'height': '800px',
-                'width': '800px',
-                'top': '50px',
-                'left': '510px'
-            });
-            $("#chartWindowContent").addClass("content-loading");
-        }  else {
-            $("#chartWindowContent").addClass("content-loading");
-        }
-
-        
+        //need to check if optionalWhereClause is provided -- this is an onclick or multiple click select event and the chart can be shown.
+        if (app.polygonResponseCount > 2500 && optionalWhereClause == undefined) {
+            //don't show chart
+            $("#toast_title").html("Warning");
+            $("#toast_body").html("Cannot show chart for "+ app.polygonResponseCount + " features. Please narrow your data and try again.");  
+            $("#toast-fixed").fadeIn();
+            setTimeout(function(){ 
+                $("#toast-fixed").fadeOut();
+            }, 5000);
+        } else {
+            if( $("#chartWindowDiv").css("visibility") != "visible" ) {
+                $('#chartWindowDiv').css({
+                    'visibility': 'visible',
+                    'height': '800px',
+                    'width': '800px',
+                    'top': '50px',
+                    'left': '510px'
+                });
+                $("#chartWindowContent").addClass("content-loading");
+            }  else {
+                $("#chartWindowContent").addClass("content-loading");
+            }        
  
-        $('#chartContainer').empty();
-        //console.log('creating chart query');
-        var chartQueryTask;
-        var sparrowLayerId = app.map.getLayer('SparrowRanking').visibleLayers[0];
+            $('#chartContainer').empty();
+            //console.log('creating chart query');
+            var chartQueryTask;
+            var sparrowLayerId = app.map.getLayer('SparrowRanking').visibleLayers[0];
 
-        if (optionalWhereClause == undefined){
-            if (app.map.getLayer('SparrowRanking').layerDefinitions){
-                var whereClause = app.map.getLayer('SparrowRanking').layerDefinitions[sparrowLayerId];
+            if (optionalWhereClause == undefined){
+                if (app.map.getLayer('SparrowRanking').layerDefinitions){
+                    var whereClause = app.map.getLayer('SparrowRanking').layerDefinitions[sparrowLayerId];
+                } else{
+                    var whereClause = '1=1';
+                }
             } else{
-                var whereClause = '1=1';
+                var whereClause = optionalWhereClause;
             }
-        } else{
-            var whereClause = optionalWhereClause;
-        }
 
-        //add map layer ID to query URL
-        var SparrowRankingUrl = serviceBaseURL + sparrowLayerId;
+            //add map layer ID to query URL
+            var SparrowRankingUrl = serviceBaseURL + sparrowLayerId;
 
-        //setup QueryTask
-        chartQueryTask = new esri.tasks.QueryTask(SparrowRankingUrl);
+            //setup QueryTask
+            chartQueryTask = new esri.tasks.QueryTask(SparrowRankingUrl);
 
-        //Returns chartOutfields Object form config --i.e. {attribute: "VALUE", label: "VALUE"}
-        var chartFieldsObj = getChartOutfields(sparrowLayerId);
+            //Returns chartOutfields Object form config --i.e. {attribute: "VALUE", label: "VALUE"}
+            var chartFieldsObj = getChartOutfields(sparrowLayerId);
 
-        //grab attributes from chartOutfields object
-        var outfieldsArr = [];
-        $.each(chartFieldsObj, function(index, obj){
-            outfieldsArr.push( obj.attribute ); //get attribute value ONLY
-        });
+            //grab attributes from chartOutfields object
+            var outfieldsArr = [];
+            $.each(chartFieldsObj, function(index, obj){
+                outfieldsArr.push( obj.attribute ); //get attribute value ONLY
+            });
 
-        //setup esri query
-        var chartQuery = new esri.tasks.Query();
-        chartQuery.returnGeometry = false;
-        chartQuery.outFields = getExtraOutfields(outfieldsArr, sparrowLayerId);
-        chartQuery.where = whereClause;
+            //setup esri query
+            var chartQuery = new esri.tasks.Query();
+            chartQuery.returnGeometry = false;
+            chartQuery.outFields = getExtraOutfields(outfieldsArr, sparrowLayerId);
+            chartQuery.where = whereClause;
 
-        chartQueryTask.execute(chartQuery, showChart);
+            chartQueryTask.execute(chartQuery, showChart);
 
-        //$('#chartWindowDiv').addClass("content-loading");
-        $('#chartTabContent').addClass("content-loading");
+            //$('#chartWindowDiv').addClass("content-loading");
+            $('#chartTabContent').addClass("content-loading");
+        } // end polygoncount is less that 2500
     }//END app.createChartQuery
 
     app.downloadChartPNG = function(){
@@ -3013,7 +3084,6 @@ require([
 
         return configObject;
     }
-
 
     function setupQueryTask(url, outFieldsArr, whereClause){
         var queryTask;
@@ -3247,7 +3317,7 @@ require([
             //push the feature attributes AFTER removing all the "AREA" atributes.
             featureSort.push(feature.attributes);
         });
-       /* var singleChart = false;
+        /* var singleChart = false;
         var checkArr = ["ACCY", "INCY"];
         $.each(checkArr, function(index, val){
             if( featureSort[0].hasOwnProperty(val) ){
@@ -3272,7 +3342,7 @@ require([
             return parseFloat(b.total) - parseFloat(a.total);
         });
 
-       /* if (singleChart === true){
+        /* if (singleChart === true){
             $.each(featureSort, function(index, obj){
                 delete obj.total;
             });
@@ -3310,7 +3380,7 @@ require([
             value.y !== undefined ? columnLabels.push(value.y) : columnLabels.push(value);
         });  //removes AND returns column labels ( chartArr[0] )
 
-       //get chartOutfields from config --i.e {attribute: "VALUE", label: "value"}
+        //get chartOutfields from config --i.e {attribute: "VALUE", label: "value"}
         var sparrowLayerId = app.map.getLayer('SparrowRanking').visibleLayers[0];
         var chartLabelsObj = getChartOutfields(sparrowLayerId);
         var chartLabelsArr = [];
@@ -3319,12 +3389,12 @@ require([
         });
 
         // initial table for Table tab
-         tableArr = tableFeatures; // featureSort;
-         labelArr = [];
-         $.each(chartLabelsArr, function(index, value){
+        tableArr = tableFeatures; // featureSort;
+        labelArr = [];
+        $.each(chartLabelsArr, function(index, value){
             labelArr.push(value);
         });
-     //   labelArr.push("Area"); // for all but catchments
+        //   labelArr.push("Area"); // for all but catchments
         /*if (sparrowLayerId == 0 || sparrowLayerId == 8) {
             labelArr[0] = "Name";
         }*/
@@ -3346,7 +3416,7 @@ require([
             series[index].data = chartArr[index];
         });
 
-         /// SAMPLE DATA FORMAT
+        /// SAMPLE DATA FORMAT
         /* var series = [{
             name: 'dl1_ST_sc1',
             data: [5, 3, 4, 7, 2, 5, 3, 5, 3, 4, 7, 2, 5, 3, 5, 3, 4, 7, 2, 5, 3, 5, 3, 4, 7, 2, 5, 3]
@@ -3612,7 +3682,7 @@ require([
                             events:{
                                 load:function(){
                                     this.chartBackground.attr({ fill: 'rgba(255, 255, 255, 1.0)' });
-                                  // this.plotBackground.attr({ fill: 'rgba(255, 255, 255, 1.0)'  });
+                                // this.plotBackground.attr({ fill: 'rgba(255, 255, 255, 1.0)'  });
                                     this.renderer.image('https://wim.usgs.gov/visuals/usgs/usgslogo1.jpg', 2, 2, 50, 30).add();
                                 }
                             }
@@ -3723,7 +3793,7 @@ require([
                     },
                     series:{
                         point:{
-                             events:{
+                            events:{
                                 mouseOver: function(){
 
 
@@ -3801,9 +3871,7 @@ require([
                         app.map.graphics.remove(obj);
                     }
                 });
-            });
-
-            
+            });            
         }); //END self-invoking highcharts function
         var height = $('#chartWindowDiv').height() - 65;
         var width = $('#chartWindowDiv').width();
@@ -3811,7 +3879,6 @@ require([
         $('#chartTabContent').removeClass("content-loading");
         //$('#chartWindowDiv').removeClass("content-loading");
         //$('#loadingDiv').removeClass("content-loading");
-
     } //END ShowChart()
 
     //function to filter table based on selection in chart
@@ -4461,6 +4528,7 @@ function loadEventHandlers() {
 
         //reflow the chart if it's open
         if( $("#chartWindowDiv").css("visibility") == "visible" ) {
+            //$("#toast_title").html("Loading...");
             //$("#toast_body").html("Chart updating");  
             //$("#toast-fixed").fadeIn();  
  
@@ -4565,7 +4633,8 @@ function loadEventHandlers() {
         generateRenderer();
 
         if( $("#chartWindowDiv").css("visibility") == "visible" ) {
-            /*$("#toast_body").html("Chart updating");  
+            /*$("#toast_title").html("Loading...");
+            $("#toast_body").html("Chart updating");  
             $("#toast-fixed").fadeIn();*/
             app.createChartQuery();
         }
@@ -4598,7 +4667,8 @@ function loadEventHandlers() {
         generateRenderer();
 
         if( $("#chartWindowDiv").css("visibility") == "visible" ) {
-           /* $("#toast_body").html("Chart updating");  
+           /*$("#toast_title").html("Loading..."); 
+           $("#toast_body").html("Chart updating");  
             $("#toast-fixed").fadeIn();*/
             app.createChartQuery();
         }        
@@ -5061,6 +5131,7 @@ function AOIChange(e){
     generateRenderer();
 
     if( $("#chartWindowDiv").css("visibility") == "visible" ) {
+        $("#toast_title").html("Loading...");
         $("#toast_body").html("Chart updating");  
         $("#toast-fixed").fadeIn();
         
@@ -5197,7 +5268,6 @@ function getTableFields(headerKeysArr, sparrowLayerId){
     return htmlHeaderArr.join('');
 }
 
-
 function getLegendLabels(sparrowLayerId){
     var label = "";
     var configObject = app.getLayerConfigObject(sparrowLayerId);
@@ -5287,6 +5357,8 @@ function generateRenderer(){
         'esri/tasks/AlgorithmicColorRamp',
         'esri/tasks/GenerateRendererParameters',
         'esri/tasks/GenerateRendererTask',
+        'esri/tasks/query',
+        'esri/tasks/QueryTask',
         'dojo/dom',
         'dojo/dom-class',
         'dojo/on',
@@ -5302,6 +5374,8 @@ function generateRenderer(){
         AlgorithmicColorRamp,
         GenerateRendererParameters,
         GenerateRendererTask,
+        Query,
+        QueryTask,
         dom,
         domClass,
         on
@@ -5316,10 +5390,19 @@ function generateRenderer(){
             app.map.getLayer('SparrowRanking').setDefaultLayerDefinitions(); //is this necessary?
             app.layerDef = "1=1";
         }
-        
         //UPDATE important!  url must match serviceBaseURL in config
         app.Url = serviceBaseURL + sparrowId;
         
+        // get polygon count for global storage
+        var query = new Query();
+        var queryTask = new QueryTask(app.Url);
+        query.where = app.layerDef;
+        queryTask.executeForCount(query, function(count){
+            app.polygonResponseCount = count;
+          },function(error){
+            console.log(error);
+          });
+
         var selectedMetric = $('#displayedMetricSelect')[0].value;
         app.outFields = [selectedMetric];
         app.currentAttribute = selectedMetric; 
