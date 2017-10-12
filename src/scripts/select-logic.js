@@ -490,10 +490,23 @@ function generateRenderer(){
         query.where = app.layerDef;
         queryTask.executeForCount(query, function(count){
             app.polygonResponseCount = count;
-          },function(error){
+            if( $("#chartWindowDiv").css("visibility") == "visible" ) {
+                if (app.polygonResponseCount > 2500){
+                    alert("no chart");
+                    app.map.graphics.clear();
+                    $("#chartButton").html("Show Chart for All");
+                    app.formattedHighlightString = "";
+                    $('#chartWindowDiv').css('visibility', 'hidden');
+                    $('#chartWindowContainer').empty();
+                    $('#chartWindowPanelTitle').empty();
+                } else{
+                    app.createChartQuery();
+                }
+            }  
+        },function(error){
             console.log(error);
-          });
-
+        });
+        
         var selectedMetric = $('#displayedMetricSelect')[0].value;
         app.outFields = [selectedMetric];
         app.currentAttribute = selectedMetric; 

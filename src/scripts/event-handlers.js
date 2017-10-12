@@ -12,13 +12,13 @@ function loadEventHandlers() {
         generateRenderer();
 
         //reflow the chart if it's open
-        if( $("#chartWindowDiv").css("visibility") == "visible" ) {
+       /*  if( $("#chartWindowDiv").css("visibility") == "visible" ) {
             //$("#toast_title").html("Loading...");
             //$("#toast_body").html("Chart updating");  
             //$("#toast-fixed").fadeIn();  
  
             app.createChartQuery();
-        }
+        } */
 
     });
     /*END RADIO EVENTS*/
@@ -104,10 +104,10 @@ function loadEventHandlers() {
         setAggregateGroup( e.currentTarget.selectedIndex, $(".radio input[type='radio']:checked")[0].id );
         generateRenderer();
 
-        if( $("#chartWindowDiv").css("visibility") == "visible" ) {
+       /*  if( $("#chartWindowDiv").css("visibility") == "visible" ) {
             app.map.graphics.clear();
             app.createChartQuery();
-        }
+        } */
 
     });
     /*END GROUP RESULTS (AGGREGATE LAYER) EVENTS */
@@ -117,12 +117,12 @@ function loadEventHandlers() {
         $("#page-loader").fadeIn();
         generateRenderer();
 
-        if( $("#chartWindowDiv").css("visibility") == "visible" ) {
-            /*$("#toast_title").html("Loading...");
+         /* if( $("#chartWindowDiv").css("visibility") == "visible" ) {
+            $("#toast_title").html("Loading...");
             $("#toast_body").html("Chart updating");  
-            $("#toast-fixed").fadeIn();*/
+            $("#toast-fixed").fadeIn();
             app.createChartQuery();
-        }
+        } */
     });
     /*END METRIC EVENTS*/
 
@@ -151,12 +151,7 @@ function loadEventHandlers() {
         app.clearLayerDefObj();
         generateRenderer();
 
-        if( $("#chartWindowDiv").css("visibility") == "visible" ) {
-           /*$("#toast_title").html("Loading..."); 
-           $("#toast_body").html("Chart updating");  
-            $("#toast-fixed").fadeIn();*/
-            app.createChartQuery();
-        }        
+              /**CODE FOR CHART VISIBILITY Was here */
         // remove all warnings if any
         $(".grp1-warning").remove();
         $(".grp2-warning").remove();
