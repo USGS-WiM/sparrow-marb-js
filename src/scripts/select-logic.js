@@ -490,6 +490,17 @@ function generateRenderer(){
         query.where = app.layerDef;
         queryTask.executeForCount(query, function(count){
             app.polygonResponseCount = count;
+            if (app.polygonResponseCount > 2500 && $("#chartButton").prop('disabled', false)){
+                $('#chartButton').prop('disabled', true);
+                $('#popupChartButton').prop('disabled', true);
+                $('#fromMapTab').prop('disabled', true);
+            } else{
+                $('#chartButton').prop('disabled', false);
+                $('#popupChartButton').prop('disabled', false);
+                $('#fromMapTab').prop('disabled', false);
+            }
+            
+
             if( $("#chartWindowDiv").css("visibility") == "visible" ) {
                 if (app.polygonResponseCount > 2500){
                     alert("no chart");
