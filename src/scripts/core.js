@@ -412,15 +412,6 @@ require([
             case 4: 
                 var responseArray = fourAOIsSelected(selectedId); // returns array containing objects {filteredAOIs, prop, select, whichAOI}
 
-<<<<<<< HEAD
-        switch(selectedId) {
-            //ST SELECT CHANGED
-            case 'st-select':
-                //filter the grp1- and grp3-select options using the selected ST__________________________________________________________________________________________________________________________________________
-                 if (layerDefObj.AOI2) {
-                    $('#grp1-select').empty(); $('#grp3-select').empty();
-                    filteredAOIOptions = AllAOIOptions.filter(function(s){ return s.ST === layerDefObj.AOIST && s.GP2 === layerDefObj.AOI2; });  //grp2 AND ST have values
-=======
                 var theseOptions1 = getUniqueArray(responseArray[0].filterAOIs, responseArray[0].prop);
                 var theseOptions2 = getUniqueArray(responseArray[1].filterAOIs, responseArray[1].prop);
                 var theseOptions3 = getUniqueArray(responseArray[2].filterAOIs, responseArray[2].prop);
@@ -454,7 +445,6 @@ require([
                         var response1 = threeAOIchosenUpdate('#st-select', 'GP2', 'AOI2', 'GP1', 'AOI1', 'ST', 'AOIST');//filter by aio2 && aoi1
                         var response2 = threeAOIchosenUpdate('#grp1-select', 'GP2', 'AOI2', 'ST', 'AOIST', 'GP1', 'AOI1'); //filter by aoi2 && st
                     }
->>>>>>> 8e3467f028a95681aedaa355b36a448fdf0e4c2e
                 }
                 else if (!layerDefObj.AOI2) {
                     // aoi2 needs to be updated using the st, aoi1, aoi3
