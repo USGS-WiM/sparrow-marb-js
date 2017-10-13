@@ -492,18 +492,25 @@ function generateRenderer(){
             app.polygonResponseCount = count;
             if (app.polygonResponseCount > 2500 && $("#chartButton").prop('disabled', false)){
                 $('#chartButton').prop('disabled', true);
-                $('#popupChartButton').prop('disabled', true);
+                //note: popup chart button done @ end of chart function since it's not built yet
                 $('#fromMapTab').prop('disabled', true);
+ 
             } else{
                 $('#chartButton').prop('disabled', false);
-                $('#popupChartButton').prop('disabled', false);
+                //note: popup chart button done @ end of chart function since it's not built yet
                 $('#fromMapTab').prop('disabled', false);
+
             }
             
 
             if( $("#chartWindowDiv").css("visibility") == "visible" ) {
                 if (app.polygonResponseCount > 2500){
-                    alert("no chart");
+                    $("#toast_title").html("Warning");
+                    $("#toast_body").html("Cannot show chart for "+ app.polygonResponseCount + " features. Please narrow your data and try again.");  
+                    $("#toast-fixed").fadeIn();
+                    setTimeout(function(){ 
+                        $("#toast-fixed").fadeOut();
+                    }, 5000);
                     app.map.graphics.clear();
                     $("#chartButton").html("Show Chart for All");
                     app.formattedHighlightString = "";

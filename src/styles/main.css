@@ -734,10 +734,10 @@ table.hover-highlight tbody > tr.even:hover > td {
 
 /*Toast message*/
 #toast-fixed{
-  position: fixed;
+  position: relative;
   bottom: 0px;
   right: 15px;
-  z-index: 1000000;
+  z-index: 1000000000;
   max-width: 280px;
   width: auto;
 }
@@ -749,6 +749,7 @@ table.hover-highlight tbody > tr.even:hover > td {
   top: 55px !important;
   padding-bottom: 100px !important;
   right: 0 !important;
+  will-change: auto;
 }
 @media (max-width: 1200px) {
   #page-loader{
