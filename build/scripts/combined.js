@@ -32,6 +32,7 @@ var appVersion = "v0.9.0";
 
 var serviceBaseURL = "http://gis.wim.usgs.gov/arcgis/rest/services/SparrowMARBV2/SparrowMARB/MapServer/"; //important! UPDATE rest service URL
 var chartUnits = " (kg/yr.)";
+var chartFeatureMax = 2500;  //chart will not be available if more than this many polygons are showing on map.
 
 var groupResultsInitIndex = 1; //sets the default layer for the application.  In this case service layer 1 == HUC8.
 
@@ -2088,7 +2089,7 @@ var app = {};
 // Get toast and page loader ready
 $( document ).ready(function() {
   //$("#page-loader").fadeOut();
-  $("#toast-fixed").fadeOut();
+  //$("#toast-fixed").fadeOut();
   $(".nav-title").html(appTitle);
 });
 
@@ -2983,7 +2984,7 @@ require([
 
     app.createChartQuery = function(optionalWhereClause){   
         //need to check if optionalWhereClause is provided -- this is an onclick or multiple click select event and the chart can be shown.
-        if (app.polygonResponseCount > 2500 && optionalWhereClause == undefined) {
+        if (app.polygonResponseCount > chartFeatureMax && optionalWhereClause == undefined) {
             //don't show chart
             $("#toast_title").html("Warning");
             $("#toast_body").html("Cannot show chart for "+ app.polygonResponseCount + " features. Please narrow your data and try again.");  
@@ -3495,7 +3496,7 @@ require([
         $('#chartWindowDiv').removeClass( 'chartWindowMinimize' );
         $('#chartWindowDiv').css('visibility', 'visible');
         $("#toast-fixed").fadeOut();        
-        $("#toast-fixed").css('opacity', '0');
+        $("#toast-fixed").css('opacity', '1');
 
         //Important! UPDATE if nutrient Models change names.
         if( $('.radio input[type="radio"]:checked')[0].id == 'radio1'){
@@ -3508,6 +3509,13 @@ require([
 
         if (response.features.length <= 1 || app.customChartClicked){
             $('#chartWindowPanelTitle').append('<br/><div class=""><button type="button" class="btn-blue" id="popupChartButton"><span class="glyphicon glyphicon-signal"></span> Show Full Chart</button></div>');
+            
+            if (app.polygonResponseCount > chartFeatureMax){
+                $('#popupChartButton').prop('disabled', true);
+            } else{
+                $('#popupChartButton').prop('disabled', false);
+            }
+            
             //if coming from custom chart button click
             if (app.customChartClicked) {
                 app.customChartClicked = false;
@@ -4043,215 +4051,217 @@ require([
         chartQuery.where = whereClause;
 
         chartQueryTask.execute(chartQuery, getDDChart);
-    }
-    // results of chartQueryTask for miniChart in data download modal so that user can print csv or png
-    function getDDChart(response){
-        var columnLabels = [];
-        var chartTitle;
-        var categories = [];
-        var chartArr = [];
-        var series = [];
-        var featureSort = [];       
 
-        $.each(response.features, function(index, feature){
-            /***this function removes any fields ending with "AREA" from the response.features Object. (i.e. DEMIAREA, DEMTAREA, GP1_AREA, etc.)
-            The chart was not built to accommodate the extra area fields, but they're necessary for display in the table.***/
-            $.map(Object.keys(feature.attributes), function(val, i){
-                //find ANY INDEX that contains "AREA" in the key
-                if (val.indexOf("AREA") > -1) delete feature.attributes[val];
+        // results of chartQueryTask for miniChart in data download modal so that user can print csv or png
+        function getDDChart(response){
+            var columnLabels = [];
+            var chartTitle;
+            var categories = [];
+            var chartArr = [];
+            var series = [];
+            var featureSort = [];       
+
+            $.each(response.features, function(index, feature){
+                /***this function removes any fields ending with "AREA" from the response.features Object. (i.e. DEMIAREA, DEMTAREA, GP1_AREA, etc.)
+                The chart was not built to accommodate the extra area fields, but they're necessary for display in the table.***/
+                $.map(Object.keys(feature.attributes), function(val, i){
+                    //find ANY INDEX that contains "AREA" in the key
+                    if (val.indexOf("AREA") > -1) delete feature.attributes[val];
+                });
+                //push the feature attributes AFTER removing all the "AREA" atributes.
+                featureSort.push(feature.attributes);
             });
-            //push the feature attributes AFTER removing all the "AREA" atributes.
-            featureSort.push(feature.attributes);
-        });
-        var sum = 0;
-        $.each(featureSort, function(index, obj){
-            $.each(obj, function(i, attribute){
-                //don't try to sum up an strings or ID numbers
-                //UPDATE important! -- if catchments ID field is returned make sure the correctly named field is in the catch below.
-                if(jQuery.type(attribute) !== 'string' && i !== "MRB_ID") sum += attribute;
+            var sum = 0;
+            $.each(featureSort, function(index, obj){
+                $.each(obj, function(i, attribute){
+                    //don't try to sum up an strings or ID numbers
+                    //UPDATE important! -- if catchments ID field is returned make sure the correctly named field is in the catch below.
+                    if(jQuery.type(attribute) !== 'string' && i !== "MRB_ID") sum += attribute;
+                });
+                obj.total = sum;
+                sum = 0;
             });
-            obj.total = sum;
-            sum = 0;
-        });
-        featureSort.sort(function(a, b){
-            return parseFloat(b.total) - parseFloat(a.total);
-        });
-
-        //create array of field names
-        $.each(response.features[0].attributes, function(key, value){
-            categories.push(key);
-        });
-
-        categories.pop();
-
-        //create multidimensional array from query response
-        $.each(categories, function(index, value){
-            var data = [];
-            $.each(featureSort, function(innerIndex, feature){
-                if ($('#groupResultsSelect')[0].selectedIndex == 0) { //catchments only
-                    data.push( {y: feature[value], id: feature["MRB_ID"] || feature["ST_MRB_ID"]}); // TMR ADDED
-                } else {
-                    data.push( feature[value] );
-                }
+            featureSort.sort(function(a, b){
+                return parseFloat(b.total) - parseFloat(a.total);
             });
-            chartArr.push(data);
-        });
-        
-        //remove 1st field ('group by') from charting arrays
-        categories.shift();
-        $.each(chartArr.shift(), function(key, value) {  // TMR ADDED
-            // check to see if catchments, this will be an object otherwise it will be array
-            value.y !== undefined ? columnLabels.push(value.y) : columnLabels.push(value);
-        });  //removes AND returns column labels ( chartArr[0] )
 
-       //get chartOutfields from config --i.e {attribute: "VALUE", label: "value"}
-        var sparrowLayerId = app.map.getLayer('SparrowRanking').visibleLayers[0];
-        var chartLabelsObj = getChartOutfields(sparrowLayerId);
-        var chartLabelsArr = [];
-        $.each(chartLabelsObj, function(index, obj){
-            chartLabelsArr.push( obj.label ); //get labels ONLY as arr
-        });
-
-        //removes 'group by' from labels  (MUST MATCH CATEGORIES)
-        chartLabelsArr.shift();
-
-        //push label array into series
-        $.each(chartLabelsArr, function(index, value){
-            series.push( {name: value, turboThreshold: 3000});
-        });
-
-        //chartArr is a multi-dimensional array.  Each item in chartArr is an array of series data.
-        $.each(chartArr, function(index, value){
-            series[index].data = chartArr[index];
-        });
-
-        //UPDATE IMPORTANT!  Match labels with #groupResultsSelect indicies
-        function labelxSelect(){
-            var dropdown = $('#groupResultsSelect')[0].selectedIndex;
-            switch ( dropdown ){
-                case 0:
-                    return 'Catchment ID';
-                case 1:
-                    return 'HUC8';
-                case 2:
-                    return 'Tributary';
-                case 3:
-                    return 'Main River Basin';
-                case 4:
-                    return 'State';
-            }
-        }
-
-        //UPDATE IMPORTANT! must match layers in service to Groups in sparrow-config.js
-        function labelySelect(){            
-            var label;
-            var configObject = app.getLayerConfigObject(app.map.getLayer('SparrowRanking').visibleLayers[0]);
-            $.each(configObject, function(index, object){
-                if (object.field == $('#displayedMetricSelect').val()) label = object.name;                
+            //create array of field names
+            $.each(response.features[0].attributes, function(key, value){
+                categories.push(key);
             });
-            return label;
-        }
-        var colorArr = ( $('.radio input[type="radio"]:checked')[0].id == 'radio1' ? phosColors  : nitroColors );
-        var miniChart = $('#miniChartContainer').highcharts();
 
-        $(function () {
-            Highcharts.setOptions({
-                lang: {
-                    thousandsSep: ','
-                },
-                colors: colorArr
+            categories.pop();
+
+            //create multidimensional array from query response
+            $.each(categories, function(index, value){
+                var data = [];
+                $.each(featureSort, function(innerIndex, feature){
+                    if ($('#groupResultsSelect')[0].selectedIndex == 0) { //catchments only
+                        data.push( {y: feature[value], id: feature["MRB_ID"] || feature["ST_MRB_ID"]}); // TMR ADDED
+                    } else {
+                        data.push( feature[value] );
+                    }
+                });
+                chartArr.push(data);
             });
-            var buttons = Highcharts.getOptions().exporting.buttons.contextButton.menuItems;
             
-            $('#miniChartContainer').highcharts({
-                chart: {
-                    type: 'column',
-                    backgroundColor:'rgba(255, 255, 255, 0.45)',
-                },
-                title:{
-                    text: $('.radio input[type="radio"]:checked')[0].id == 'radio1' ? 'Total Phosphorus' + labelySelect() : 'Total Nitrogen' + labelySelect()
-                },
-                subtitle:{
-                    text: null
-                },
-                exporting:{
-                    enabled: false,
-                    chartOptions:{
-                        chart:{
-                            events:{
-                                load:function(){
-                                    this.chartBackground.attr({ fill: 'rgba(255, 255, 255, 1.0)' });
-                                    this.renderer.image('https://wim.usgs.gov/visuals/usgs/usgslogo1.jpg', 2, 2, 50, 30).add();
+            //remove 1st field ('group by') from charting arrays
+            categories.shift();
+            $.each(chartArr.shift(), function(key, value) {  // TMR ADDED
+                // check to see if catchments, this will be an object otherwise it will be array
+                value.y !== undefined ? columnLabels.push(value.y) : columnLabels.push(value);
+            });  //removes AND returns column labels ( chartArr[0] )
+
+        //get chartOutfields from config --i.e {attribute: "VALUE", label: "value"}
+            var sparrowLayerId = app.map.getLayer('SparrowRanking').visibleLayers[0];
+            var chartLabelsObj = getChartOutfields(sparrowLayerId);
+            var chartLabelsArr = [];
+            $.each(chartLabelsObj, function(index, obj){
+                chartLabelsArr.push( obj.label ); //get labels ONLY as arr
+            });
+
+            //removes 'group by' from labels  (MUST MATCH CATEGORIES)
+            chartLabelsArr.shift();
+
+            //push label array into series
+            $.each(chartLabelsArr, function(index, value){
+                series.push( {name: value, turboThreshold: 3000});
+            });
+
+            //chartArr is a multi-dimensional array.  Each item in chartArr is an array of series data.
+            $.each(chartArr, function(index, value){
+                series[index].data = chartArr[index];
+            });
+
+            //UPDATE IMPORTANT!  Match labels with #groupResultsSelect indicies
+            function labelxSelect(){
+                var dropdown = $('#groupResultsSelect')[0].selectedIndex;
+                switch ( dropdown ){
+                    case 0:
+                        return 'Catchment ID';
+                    case 1:
+                        return 'HUC8';
+                    case 2:
+                        return 'Tributary';
+                    case 3:
+                        return 'Main River Basin';
+                    case 4:
+                        return 'State';
+                }
+            }
+
+            //UPDATE IMPORTANT! must match layers in service to Groups in sparrow-config.js
+            function labelySelect(){            
+                var label;
+                var configObject = app.getLayerConfigObject(app.map.getLayer('SparrowRanking').visibleLayers[0]);
+                $.each(configObject, function(index, object){
+                    if (object.field == $('#displayedMetricSelect').val()) label = object.name;                
+                });
+                return label;
+            }
+            var colorArr = ( $('.radio input[type="radio"]:checked')[0].id == 'radio1' ? phosColors  : nitroColors );
+            var miniChart = $('#miniChartContainer').highcharts();
+
+            $(function () {
+                Highcharts.setOptions({
+                    lang: {
+                        thousandsSep: ','
+                    },
+                    colors: colorArr
+                });
+                var buttons = Highcharts.getOptions().exporting.buttons.contextButton.menuItems;
+                
+                $('#miniChartContainer').highcharts({
+                    chart: {
+                        type: 'column',
+                        backgroundColor:'rgba(255, 255, 255, 0.45)',
+                    },
+                    title:{
+                        text: $('.radio input[type="radio"]:checked')[0].id == 'radio1' ? 'Total Phosphorus' + labelySelect() : 'Total Nitrogen' + labelySelect()
+                    },
+                    subtitle:{
+                        text: null
+                    },
+                    exporting:{
+                        enabled: false,
+                        chartOptions:{
+                            chart:{
+                                events:{
+                                    load:function(){
+                                        this.chartBackground.attr({ fill: 'rgba(255, 255, 255, 1.0)' });
+                                        this.renderer.image('https://wim.usgs.gov/visuals/usgs/usgslogo1.jpg', 2, 2, 50, 30).add();
+                                    }
                                 }
                             }
                         }
-                    }
-                },
-                xAxis: {
-                    categories: columnLabels,
-                    title: {
-                        text: 'Ranked by ' + labelxSelect()
-                    }
-                },
-                yAxis: {
-                    min: 0,
-                    title: {
-                        text: labelySelect()
                     },
-                    stackLabels: {
-                        enabled: false,
-                        style: {
-                            fontWeight: 'bold',
-                            color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                    xAxis: {
+                        categories: columnLabels,
+                        title: {
+                            text: 'Ranked by ' + labelxSelect()
                         }
-                    }
-                },
-                legend: {
-                    align: 'left',
-                    x: 10,
-                    verticalAlign: 'top',
-                    y: 25,
-                    floating: false,
-                    padding: 5,
-                    backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || 'white',
-                    borderColor: '#CCC',
-                    borderWidth: 1,
-                    shadow: false,
-                    labelFormatter: function () {
-                        var yI = this.name.indexOf(")");
-                        var shortName = "";
-                        if (yI > -1) shortName = this.name.substring(yI+1);
-                        else shortName = this.name;
-                        return shortName;
-                    }
-                },
-                tooltip: {
-                    formatter: function(){
-                        var rank = this.point.index + 1;
-                        var percentOfTotal = (this.point.y / this.point.stackTotal) * 100;
-                        return '<b>' + labelxSelect() + ': ' + '<b>' + this.point.category  + '</b></b><br/>'
-                                + this.series.name + ': ' + '<b>' + this.point.y.toFixed(2) + ' (' + percentOfTotal.toFixed(2) + '%)' + '</b></b><br/>'
-                                + labelySelect() + ' Total: ' + '<b>' + this.point.stackTotal.toFixed(2) + '</b></b><br/>'
-                                + 'Rank: ' + '<b>' + rank + '</b>';
                     },
-                },
-                plotOptions: {
-                    column: {
-                        stacking: 'normal',
-                        dataLabels: {
+                    yAxis: {
+                        min: 0,
+                        title: {
+                            text: labelySelect()
+                        },
+                        stackLabels: {
                             enabled: false,
-                            color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white'
+                            style: {
+                                fontWeight: 'bold',
+                                color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                            }
                         }
-                    }
-                },
-                credits: {
-                    enabled: false
-                },
-                series: series
-            });
-                     
-        }); //END self-invoking highcharts function
-    } //END getDDChart()
+                    },
+                    legend: {
+                        align: 'left',
+                        x: 10,
+                        verticalAlign: 'top',
+                        y: 25,
+                        floating: false,
+                        padding: 5,
+                        backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || 'white',
+                        borderColor: '#CCC',
+                        borderWidth: 1,
+                        shadow: false,
+                        labelFormatter: function () {
+                            var yI = this.name.indexOf(")");
+                            var shortName = "";
+                            if (yI > -1) shortName = this.name.substring(yI+1);
+                            else shortName = this.name;
+                            return shortName;
+                        }
+                    },
+                    tooltip: {
+                        formatter: function(){
+                            var rank = this.point.index + 1;
+                            var percentOfTotal = (this.point.y / this.point.stackTotal) * 100;
+                            return '<b>' + labelxSelect() + ': ' + '<b>' + this.point.category  + '</b></b><br/>'
+                                    + this.series.name + ': ' + '<b>' + this.point.y.toFixed(2) + ' (' + percentOfTotal.toFixed(2) + '%)' + '</b></b><br/>'
+                                    + labelySelect() + ' Total: ' + '<b>' + this.point.stackTotal.toFixed(2) + '</b></b><br/>'
+                                    + 'Rank: ' + '<b>' + rank + '</b>';
+                        },
+                    },
+                    plotOptions: {
+                        column: {
+                            stacking: 'normal',
+                            dataLabels: {
+                                enabled: false,
+                                color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white'
+                            }
+                        }
+                    },
+                    credits: {
+                        enabled: false
+                    },
+                    series: series
+                });
+                        
+            }); //END self-invoking highcharts function
+        } //END getDDChart()
+    }
+    
 
     app.downloadPNGofChart = function() {
         $('#miniChartContainer').highcharts().exportChart({ type: 'PNG' });
@@ -4274,8 +4284,12 @@ require([
         }
     }
     function showDataDownloadModal () {
-        getMiniHighChart();
+        //only call mini-chart function if less than the specified chart feature max
+        if (app.polygonResponseCount <= chartFeatureMax){
+            getMiniHighChart();
+        }
         $('#downloadDatamodal').modal('show');
+        $('#generalTab').tab('show');
     }
     $('#dataDownloadNav').click(function(){
         showDataDownloadModal();
@@ -4527,13 +4541,13 @@ function loadEventHandlers() {
         generateRenderer();
 
         //reflow the chart if it's open
-        if( $("#chartWindowDiv").css("visibility") == "visible" ) {
+       /*  if( $("#chartWindowDiv").css("visibility") == "visible" ) {
             //$("#toast_title").html("Loading...");
             //$("#toast_body").html("Chart updating");  
             //$("#toast-fixed").fadeIn();  
  
             app.createChartQuery();
-        }
+        } */
 
     });
     /*END RADIO EVENTS*/
@@ -4577,10 +4591,7 @@ function loadEventHandlers() {
     $("#chartDownload").on('click', function() {
         app.downloadChartPNG();
     })
-    //moved this out of exectureIdentifyTask()
-    $("#popupChartButton").on('click', function(){
-        app.createChartQuery();
-    });
+  
     /* AOI EVENTS */
     $('.aoiSelect').on('change', AOIChange);
 
@@ -4619,10 +4630,10 @@ function loadEventHandlers() {
         setAggregateGroup( e.currentTarget.selectedIndex, $(".radio input[type='radio']:checked")[0].id );
         generateRenderer();
 
-        if( $("#chartWindowDiv").css("visibility") == "visible" ) {
+       /*  if( $("#chartWindowDiv").css("visibility") == "visible" ) {
             app.map.graphics.clear();
             app.createChartQuery();
-        }
+        } */
 
     });
     /*END GROUP RESULTS (AGGREGATE LAYER) EVENTS */
@@ -4632,18 +4643,18 @@ function loadEventHandlers() {
         $("#page-loader").fadeIn();
         generateRenderer();
 
-        if( $("#chartWindowDiv").css("visibility") == "visible" ) {
-            /*$("#toast_title").html("Loading...");
+         /* if( $("#chartWindowDiv").css("visibility") == "visible" ) {
+            $("#toast_title").html("Loading...");
             $("#toast_body").html("Chart updating");  
-            $("#toast-fixed").fadeIn();*/
+            $("#toast-fixed").fadeIn();
             app.createChartQuery();
-        }
+        } */
     });
     /*END METRIC EVENTS*/
 
     /* CLEAR AOI BUTTON EVENT */
     $("#clearAOIButton").on('click', function(){
-        $("#page-loader").fadeIn();
+        $("#page-loader").show();
         var sparrowId = app.map.getLayer('SparrowRanking').visibleLayers[0];
 
         //revert to default layer from split layer
@@ -4666,12 +4677,7 @@ function loadEventHandlers() {
         app.clearLayerDefObj();
         generateRenderer();
 
-        if( $("#chartWindowDiv").css("visibility") == "visible" ) {
-           /*$("#toast_title").html("Loading..."); 
-           $("#toast_body").html("Chart updating");  
-            $("#toast-fixed").fadeIn();*/
-            app.createChartQuery();
-        }        
+              /**CODE FOR CHART VISIBILITY Was here */
         // remove all warnings if any
         $(".grp1-warning").remove();
         $(".grp2-warning").remove();
@@ -5399,10 +5405,41 @@ function generateRenderer(){
         query.where = app.layerDef;
         queryTask.executeForCount(query, function(count){
             app.polygonResponseCount = count;
-          },function(error){
-            console.log(error);
-          });
+            if (app.polygonResponseCount > 2500 && $("#chartButton").prop('disabled', false)){
+                $('#chartButton').prop('disabled', true);
+                //note: popup chart button done @ end of chart function since it's not built yet
+                $('#fromMapTab').prop('disabled', true);
+ 
+            } else{
+                $('#chartButton').prop('disabled', false);
+                //note: popup chart button done @ end of chart function since it's not built yet
+                $('#fromMapTab').prop('disabled', false);
 
+            }
+            
+
+            if( $("#chartWindowDiv").css("visibility") == "visible" ) {
+                if (app.polygonResponseCount > 2500){
+                    $("#toast_title").html("Warning");
+                    $("#toast_body").html("Cannot show chart for "+ app.polygonResponseCount + " features. Please narrow your data and try again.");  
+                    $("#toast-fixed").fadeIn();
+                    setTimeout(function(){ 
+                        $("#toast-fixed").fadeOut();
+                    }, 5000);
+                    app.map.graphics.clear();
+                    $("#chartButton").html("Show Chart for All");
+                    app.formattedHighlightString = "";
+                    $('#chartWindowDiv').css('visibility', 'hidden');
+                    $('#chartWindowContainer').empty();
+                    $('#chartWindowPanelTitle').empty();
+                } else{
+                    app.createChartQuery();
+                }
+            }  
+        },function(error){
+            console.log(error);
+        });
+        
         var selectedMetric = $('#displayedMetricSelect')[0].value;
         app.outFields = [selectedMetric];
         app.currentAttribute = selectedMetric; 

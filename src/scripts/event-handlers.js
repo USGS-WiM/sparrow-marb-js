@@ -125,7 +125,7 @@ function loadEventHandlers() {
 
     /* CLEAR AOI BUTTON EVENT */
     $("#clearAOIButton").on('click', function(){
-        $("#page-loader").fadeIn();
+        $("#page-loader").show();
         var sparrowId = app.map.getLayer('SparrowRanking').visibleLayers[0];
 
         //revert to default layer from split layer
