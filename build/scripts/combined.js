@@ -30,7 +30,7 @@ Also removes PNAME and replaces it with MRB_ID and ST_MRB_ID
 var appTitle = "MARB Nutrient Loading";
 var appVersion = "v0.9.0";
 
-var serviceBaseURL = "http://gis.wim.usgs.gov/arcgis/rest/services/SparrowMARBV2/SparrowMARB/MapServer/"; //important! UPDATE rest service URL
+var serviceBaseURL = "https://gis.wim.usgs.gov/arcgis/rest/services/SparrowMARBV2/SparrowMARB/MapServer/"; //important! UPDATE rest service URL
 var chartUnits = " (kg/yr.)";
 var chartFeatureMax = 2500;  //chart will not be available if more than this many polygons are showing on map.
 
