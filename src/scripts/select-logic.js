@@ -506,13 +506,13 @@ function generateRenderer(){
             if( $("#chartWindowDiv").css("visibility") == "visible" ) {
                 if (app.polygonResponseCount > 2500){
                     $("#toast_title").html("Warning");
-                    $("#toast_body").html("Cannot show chart for "+ app.polygonResponseCount + " features. Please narrow your data and try again.");  
+                    $("#toast_body").html("Cannot show chart for "+ app.polygonResponseCount + " features. Please narrow Area of Interest or Group Results and try again.");  
                     $("#toast-fixed").fadeIn();
                     setTimeout(function(){ 
                         $("#toast-fixed").fadeOut();
                     }, 5000);
                     app.map.graphics.clear();
-                    $("#chartButton").html("Show Chart for All");
+                    $("#chartButton").html("Show Chart for All Map Features");
                     app.formattedHighlightString = "";
                     $('#chartWindowDiv').css('visibility', 'hidden');
                     $('#chartWindowContainer').empty();

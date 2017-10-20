@@ -775,8 +775,8 @@ require([
                         if (app.userSelectedDispFieldName == "") {
                             app.userSelectedDispFieldName = respObj.displayFieldName;
                         }
-                        // make sure 'Show Chart for All' button now says 'Show Chart for selected'
-                        $('#chartButton').html("Show Chart for selected");
+                        // make sure 'Show Chart for All Map Features' button now says 'Show Chart for selected features'
+                        $('#chartButton').html("Show Chart for selected features");
                     } else {
                         //removing
                         var symbolToRemove = app.map.graphics.graphics.filter(function (g) { return g.symbol.id == respObj.value})[0];
@@ -784,7 +784,7 @@ require([
                         //remove this from array of responses
                         app.userSelectedShapes.splice(app.userSelectedShapes.indexOf(respValue), 1);
                         // if all selected have been removed, change Show Chart button back to say All
-                        if (app.userSelectedShapes.length == 0) $('#chartButton').html("Show Chart for All");
+                        if (app.userSelectedShapes.length == 0) $('#chartButton').html("Show Chart for All Map Features");
                     }
                 });
             } else {
@@ -907,7 +907,7 @@ require([
         if (app.polygonResponseCount > chartFeatureMax && optionalWhereClause == undefined) {
             //don't show chart
             $("#toast_title").html("Warning");
-            $("#toast_body").html("Cannot show chart for "+ app.polygonResponseCount + " features. Please narrow your data and try again.");  
+            $("#toast_body").html("Cannot show chart for "+ app.polygonResponseCount + " features. Please narrow Area of Interest or Group Results and try again.");  
             $("#toast-fixed").show();
             setTimeout(function(){ 
                 $("#toast-fixed").hide();
@@ -1462,7 +1462,7 @@ require([
 
         $('#chartClose').on('click', function(){
             app.map.graphics.clear();
-            $("#chartButton").html("Show Chart for All");
+            $("#chartButton").html("Show Chart for All Map Features");
             app.formattedHighlightString = "";
             $('#chartWindowDiv').css('visibility', 'hidden');
             $('#chartWindowContainer').empty();
