@@ -908,10 +908,10 @@ require([
             //don't show chart
             $("#toast_title").html("Warning");
             $("#toast_body").html("Cannot show chart for "+ app.polygonResponseCount + " features. Please narrow your data and try again.");  
-            $("#toast-fixed").fadeIn();
+            $("#toast-fixed").show();
             setTimeout(function(){ 
-                $("#toast-fixed").fadeOut();
-            }, 5000);
+                $("#toast-fixed").hide();
+            }, 4000);
         } else {
             if( $("#chartWindowDiv").css("visibility") != "visible" ) {
                 $('#chartWindowDiv').css({
