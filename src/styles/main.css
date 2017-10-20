@@ -734,7 +734,7 @@ table.hover-highlight tbody > tr.even:hover > td {
 
 /*Toast message*/
 #toast-fixed{
-  position: relative;
+  position: absolute;
   bottom: 0px;
   right: 15px;
   z-index: 1000000000;

@@ -21,7 +21,7 @@
     <!-- endbuild -->
 
     <!-- CSS for the mapping components -->
-    <link rel="stylesheet" href="http://js.arcgis.com/3.21/esri/css/esri.css">
+    <link rel="stylesheet" href="https://js.arcgis.com/3.21/esri/css/esri.css">
 
     <!-- build:css styles/main.css -->
     <link rel="stylesheet" href="styles/main.css">
@@ -49,7 +49,7 @@
 
     <!-- endbower -->
     <!-- endbuild -->
-    <script type="text/javascript" src="http://js.arcgis.com/3.21/"></script>
+    <script type="text/javascript" src="https://js.arcgis.com/3.21/"></script>
 
     
     <!-- build:js scripts/combined.js -->
@@ -685,9 +685,9 @@
                             <h6 class="alignc">Group Results By</h6>
                             <select id="groupResultsSelect" class="selectpicker nonAOISelect">
                                 <option>Catchment</option>
+                                <option>HUC12</option>
                                 <option>HUC8</option>
-                                <option>Tributary</option>
-                                <option>Main River Basin</option>
+                                <option>River Basin</option>
                                 <option>State</option>
                             </select>
 
@@ -818,7 +818,7 @@
     </div>
 
     <!-- Toaster -->
-    <div class="banner info intense" id="toast-fixed">
+    <div class="banner info intense" style="display: none;" id="toast-fixed">
         <div class="banner-body">
             <h5 id="toast_title">Loading...</h5>
             <p id="toast_body">We are loading the xxxxx...</p>
