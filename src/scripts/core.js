@@ -775,8 +775,8 @@ require([
                         if (app.userSelectedDispFieldName == "") {
                             app.userSelectedDispFieldName = respObj.displayFieldName;
                         }
-                        // make sure 'Show Chart for All Map Features' button now says 'Show Chart for selected'
-                        $('#chartButton').html("Show Chart for selected");
+                        // make sure 'Show Chart for All Map Features' button now says 'Show Chart for selected features'
+                        $('#chartButton').html("Show Chart for selected features");
                     } else {
                         //removing
                         var symbolToRemove = app.map.graphics.graphics.filter(function (g) { return g.symbol.id == respObj.value})[0];
