@@ -1428,12 +1428,18 @@ require([
         }
 
         if (response.features.length <= 1 || app.customChartClicked){
-            $('#chartWindowPanelTitle').append('<br/><div class=""><button type="button" class="btn-blue" id="popupChartButton"><span class="glyphicon glyphicon-signal"></span> Show Full Chart</button></div>');
+            $(document.body).tooltip({ selector: "[title]" });
             
+            $('#chartWindowPanelTitle').append('<br/><div class=""><button type="button" class="btn-blue" title="Cannot load" id="popupChartButton"><span class="glyphicon glyphicon-signal"></span> Show Full Chart</button></div>');
+             
             if (app.polygonResponseCount > chartFeatureMax){
                 $('#popupChartButton').prop('disabled', true);
+                
+                
             } else{
                 $('#popupChartButton').prop('disabled', false);
+                $('#popupChartButton').attr("title", null);
+                
             }
             
             //if coming from custom chart button click
