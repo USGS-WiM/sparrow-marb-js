@@ -1428,14 +1428,16 @@ require([
         }
 
         if (response.features.length <= 1 || app.customChartClicked){
-           // $(document.body).tooltip({ selector: "[title]" });
+           //not making any difference
+            // $(document.body).tooltip({ selector: "[title]" });
+           
 
             
             $('#chartWindowPanelTitle').append('<br/><div class=""><button type="button" class="btn-blue" data-toggle="tooltip" title="Cannot display full chart for more than ' + chartFeatureMax + ' features" id="popupChartButton"><span class="glyphicon glyphicon-signal"></span> Show Full Chart</button></div>');
-            $('#popupChartButton').tooltip({selector:'data-toogle'});
+            $('#popupChartButton').tooltip({selector:'[data-toggle="tooltip"]'});
+           
             if (app.polygonResponseCount > chartFeatureMax){
                 $('#popupChartButton').prop('disabled', true);
-                
                 
             } else{
                 $('#popupChartButton').prop('disabled', false);
