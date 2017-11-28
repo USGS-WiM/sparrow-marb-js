@@ -1855,9 +1855,12 @@ require([
             headerKeyArr.push("Catchment Area");
             headerKeyArr.push("Upstream Area");
             headerKeyArr.push("Total");
+            //headerKeyArr.splice(1, 0, 'Total'); /* Can be used to add total to a specific point in the headerKeysArr */
+            
         } else {
             headerKeyArr.push("Area");
             headerKeyArr.push("Total");
+            //headerKeyArr.splice(1, 0, 'Total'); /* Can be used to add total to a specific point in the headerKeysArr */
             
         }
 
@@ -1880,10 +1883,20 @@ require([
 
             htmlArr.push("<tr id='row"+rowI+"'>");
             $.each(feature, function(key, value){
+                
+                htmlArr.push('<td>'+ value +'</td>');
+
                 //comment in if changing back to PNAME
                 //if (key !== "MRB_ID" && key !== "ST_MRB_ID") {
-                    htmlArr.push('<td>'+ value +'</td>');
+                    //htmlArr.push('<td>'+ value +'</td>');
                 //}
+                
+                /*below can be used to splice 'total' into the second position in the array*/
+                /*if (key !== "total") {
+                    htmlArr.push('<td>'+ value +'</td>');
+                } else{
+                    htmlArr.splice(1, 0, '<td>'+ value +'</td>');
+                }*/
             });
 
             htmlArr.push("</tr>");
