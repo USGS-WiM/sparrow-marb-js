@@ -124,7 +124,7 @@ require([
                     "options": {
                         "id": "modelArea",
                         "visible": false,
-                        "opacity": 0.50
+                        "opacity": 0.35
                     },
                     "wimOptions": {
                         "type": "layer",
