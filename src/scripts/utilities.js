@@ -1,6 +1,3 @@
-/**
- * Created by bdraper on 4/17/2015.
- */
 //utility function for formatting numbers with commas every 3 digits
 function addCommas(nStr) {
     nStr += '';
@@ -19,3 +16,18 @@ function camelize(str) {
         return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
     }).replace(/\s+/g, '');
 }
+
+$("#IEwarnContinue").click(function () {
+    $('#aboutModal').modal({backdrop: 'static'});
+    $('#aboutModal').modal('show');
+});
+
+if(navigator.userAgent.indexOf('MSIE')!==-1 || navigator.appVersion.indexOf('Trident/') > 0){
+    $("#IEwarningModal").modal('show');
+} else {
+    $('#aboutModal').modal({backdrop: 'static'});
+    $('#aboutModal').modal('show');
+}
+// End IE warning code
+
+

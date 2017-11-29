@@ -11,6 +11,9 @@ $( document ).ready(function() {
   //$("#toast-fixed").fadeOut();
   $(".nav-title").html(appTitle);
   $('[data-toggle="tooltip"]').tooltip();
+
+
+  
 });
 
 require([
