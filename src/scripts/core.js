@@ -11,6 +11,9 @@ $( document ).ready(function() {
   //$("#toast-fixed").fadeOut();
   $(".nav-title").html(appTitle);
   $('[data-toggle="tooltip"]').tooltip();
+
+
+  
 });
 
 require([
@@ -1428,12 +1431,21 @@ require([
         }
 
         if (response.features.length <= 1 || app.customChartClicked){
-            $('#chartWindowPanelTitle').append('<br/><div class=""><button type="button" class="btn-blue" id="popupChartButton"><span class="glyphicon glyphicon-signal"></span> Show Full Chart</button></div>');
+           //not making any difference
+            // $(document.body).tooltip({ selector: "[title]" });
+           
+
             
+            $('#chartWindowPanelTitle').append('<br/><div class=""><button type="button" class="btn-blue" data-toggle="tooltip" title="Cannot display full chart for more than ' + chartFeatureMax + ' features" id="popupChartButton"><span class="glyphicon glyphicon-signal"></span> Show Full Chart</button></div>');
+            $('#popupChartButton').tooltip({selector:'[data-toggle="tooltip"]'});
+           
             if (app.polygonResponseCount > chartFeatureMax){
                 $('#popupChartButton').prop('disabled', true);
+                
             } else{
                 $('#popupChartButton').prop('disabled', false);
+                $('#popupChartButton').attr("title", null);
+                
             }
             
             //if coming from custom chart button click
@@ -1618,12 +1630,16 @@ require([
                     },
                     buttons:{
                         contextButton:{
-                            text: "Chart Options",
-                            height: 40,
+                             text: "Chart Download / Chart Options",
+                            theme: {
+                                fill: '#0F8AFF'
+                            },
                             symbol: null,
+                            symbolFill: '#0F8AFF',
+                            height: 80,
                             align: 'right',
                             menuItems:[
-                                /*{
+                                {
                                     text: 'Download PNG',
                                     onclick: function() {
                                         this.exportChart({
@@ -1642,7 +1658,7 @@ require([
                                     onclick: function(){
                                         this.downloadXLS();
                                     }
-                                },*/
+                                },
                                 {
                                     text: 'Change Background Transparency',
                                     onclick: function(){
@@ -1683,16 +1699,17 @@ require([
                     }
                 },
                 legend: {
-                    align: 'left',
+                     align: 'left',
                     x: 10,
                     verticalAlign: 'top',
-                    y: 25,
+                    y: 40,
                     floating: false,
                     padding: 5,
                     backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || 'white',
                     borderColor: '#CCC',
                     borderWidth: 1,
                     shadow: false,
+                    itemWidth: 300,
                     labelFormatter: function () {
                         var yI = this.name.indexOf(")");
                         var shortName = "";
@@ -1846,9 +1863,12 @@ require([
             headerKeyArr.push("Catchment Area");
             headerKeyArr.push("Upstream Area");
             headerKeyArr.push("Total");
+            //headerKeyArr.splice(1, 0, 'Total'); /* Can be used to add total to a specific point in the headerKeysArr */
+            
         } else {
             headerKeyArr.push("Area");
             headerKeyArr.push("Total");
+            //headerKeyArr.splice(1, 0, 'Total'); /* Can be used to add total to a specific point in the headerKeysArr */
             
         }
 
@@ -1871,10 +1891,20 @@ require([
 
             htmlArr.push("<tr id='row"+rowI+"'>");
             $.each(feature, function(key, value){
+                
+                htmlArr.push('<td>'+ value +'</td>');
+
                 //comment in if changing back to PNAME
                 //if (key !== "MRB_ID" && key !== "ST_MRB_ID") {
-                    htmlArr.push('<td>'+ value +'</td>');
+                    //htmlArr.push('<td>'+ value +'</td>');
                 //}
+                
+                /*below can be used to splice 'total' into the second position in the array*/
+                /*if (key !== "total") {
+                    htmlArr.push('<td>'+ value +'</td>');
+                } else{
+                    htmlArr.splice(1, 0, '<td>'+ value +'</td>');
+                }*/
             });
 
             htmlArr.push("</tr>");
@@ -2341,6 +2371,15 @@ require([
                     //add to legend.
                     app.legend.layerInfos.push({layer: layer, title: e.currentTarget.innerText});
                     app.legend.refresh();
+
+                    if (app.map.getLayer(layer.id).id != "modelArea"){
+                        /* Cheap, ugly fix 
+                         -- seems that layers that are on by default will show up in legend when re-toggled.
+                        -- getting around that here by checking for the offending layer id above and skipping the legend layer push
+                        */
+                        app.legend.layerInfos.push({layer: layer, title: e.currentTarget.innerText});
+                        app.legend.refresh();
+                    }
 
                 }
             });
