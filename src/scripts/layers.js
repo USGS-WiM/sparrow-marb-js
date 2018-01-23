@@ -123,12 +123,12 @@ require([
                     "visibleLayers": [21],
                     "options": {
                         "id": "modelArea",
-                        "visible": false,
+                        "visible": true,
                         "opacity": 0.35
                     },
                     "wimOptions": {
                         "type": "layer",
-                        "layerType": "agisFeature",
+                        "layerType": "agisDynamic",
                         "includeInLayerList": true,
                         "hasOpacitySlider": true,
                         "hasZoomto": false,

@@ -152,6 +152,7 @@
                         <li role="presentation" class="active"><a id="dataLimitationsTab" href="#dataLimitationsTabPane" data-toggle="tab"><i class="fa fa-exclamation-circle"></i>&nbsp;Data Limitations</a></li>
                         <li role="presentation"><a id="contactTab" href="#contactTabPane" data-toggle="tab"><i class="fa fa-envelope-o"></i>&nbsp;Contact Information</a></li>
                         <li role="presentation"><a id="definitionsTab" href="#definitionsTabPane" data-toggle="tab"><i class="fa fa-question-circle"></i>&nbsp;Definitions</a></li>
+                        <li role="presentation"><a id="disclaimerTab" href="#disclaimerTabPane" data-toggle="tab"><i class="fa fa-exclamation-triangle"></i>&nbsp;Disclaimer</a></li>
                     </ul>
                     <div class="tab-content">
                         <div role="tabpanel" class="tab-pane" id="aboutTabPane">
@@ -324,6 +325,43 @@
                             </p>
                         </div>
 
+                        <div role="tabpanel" class="tab-pane" id="disclaimerTabPane">
+                            </br>
+
+                            <p class="p-meta p-light fullwidth">
+                                <b>USGS Data Disclaimer:</b><br/>  Unless otherwise stated, all data, metadata and related materials are considered to satisfy the quality standards relative to the purpose for which the 
+                                data were collected. Although these data and associated metadata have been reviewed for accuracy and completeness and approved for release by the 
+                                U.S. Geological Survey (USGS), no warranty expressed or implied is made regarding the display or utility of the data for other purposes, nor on all computer systems, 
+                                nor shall the act of distribution constitute any such warranty.
+                            </p>
+                            <p class="p-meta p-light fullwidth">
+                                <b>USGS Software Disclaimer:</b><br/>  This software has been approved for release by the U.S. Geological Survey (USGS). Although the software has been subjected to rigorous review, the USGS 
+                                reserves the right to update the software as needed pursuant to further analysis and review. No warranty, expressed or implied, is made by the USGS or the U.S. 
+                                Government as to the functionality of the software and related material nor shall the fact of release constitute any such warranty. Furthermore, the software 
+                                is released on condition that neither the USGS nor the U.S. Government shall be held liable for any damages resulting from its authorized or unauthorized use.
+                            </p>
+                            <p class="p-meta p-light fullwidth">
+                                <b>USGS Product Names Disclaimer:</b><br/>Any use of trade, firm, or product names is for descriptive purposes only and does not imply endorsement by the U.S. Government.
+                            </p>
+                            <p class="p-meta p-light fullwidth">
+                                This web application functions best in Chrome, Firefox, or Safari. Internet Explorer works but with slower performance.                            
+                            </p>
+                            <p class="p-meta p-light fullwidth">
+                                This web application has been made possible by the following open-source projects: <br/>  
+                                Lobipanel <a href="https://github.com/arboshiki/lobipanel" target="_blank"> https://github.com/arboshiki/lobipanel</a><br/>
+                                Boostrap Select <a href="https://silviomoreto.github.io/bootstrap-select" target="_blank"> https://silviomoreto.github.io/bootstrap-select</a><br/>
+                                
+                                
+
+                                
+                            </p>
+                            <p class="p-meta p-light fullwidth">
+                                <b>Link to SPARROW REST Services:</b><br/> 
+                                <a href="https://gis.wim.usgs.gov/arcgis/rest/services/SparrowGreatLakesV2/SparrowGreatLakes/MapServer/" target="_blank">SPARROW Great Lakes REST Services</a>
+                            </p>
+                    
+                        </div>
+
                     </div>
                 </div>
 
@@ -490,81 +528,47 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="ion-close"></i></button>
-                    <h3 style="margin: 0;">Download Data</h3>
+                    <h3 style="margin: 0;">Download Geospatial Data</h3>
                 </div>
                 <div id="ddModalBody" class="modal-body">
-                    <ul class="nav nav-tabs" id="ddModalTabs">
-                        <li role="presentation" class="active"><a id="generalTab" href="#generalTabPane" data-toggle="tab"><i class="fa fa-search"></i>&nbsp;General</a></li>
-                        <li role="presentation"><a id="fromMapTab" href="#fromMapTabPane" data-toggle="tab"><i class="fa fa-map"></i>&nbsp;From Chart/Table</a></li>
-                    </ul>
-                    <div class="tab-content data-download">
-                        <div role="tabpanel" class="tab-pane active" id="generalTabPane">
-                            </br>
-                            <span class="user-guide-header">Geospatial data download</span>
-                            <div class="user-guide-item">
-                                <p>
-                                    <b>All Model Results</b>
-                                    <div>
-                                        <button type="button" class="btn-blue" id="phosphorusDownload">
-                                            <span class="glyphicon glyphicon-download"></span> Download Phosphorus Model Results
-                                        </button>
-                                        <button type="button" class="btn-blue" id="nitrogenDownload">
-                                            <span class="glyphicon glyphicon-download"></span> Download Nitrogen Model Results
-                                        </button>
-                                    </div>
-                                </p>
+                    <div style="padding: 35px 0;">
+                        <p style="max-width: none; width: 100%; text-align:center;">
+                            <b style="text-align:center; margin: 0 auto; ">All Model Results</b>
+                            <div  style="text-align:center;">
+                                <button type="button" class="btn-blue" id="phosphorusDownload">
+                                    <span class="glyphicon glyphicon-download"></span> Download Phosphorus Model Results
+                                </button>
+                                <button type="button" class="btn-blue" id="nitrogenDownload">
+                                    <span class="glyphicon glyphicon-download"></span> Download Nitrogen Model Results
+                                </button>
                             </div>
-                            <div class="user-guide-item">
-                                <p>
-                                    <b>Calibration Site Information</b>
-                                    <div>
-                                        <button type="button" class="btn-blue" id="phosphorusCalibrationDownload">
-                                            <span class="glyphicon glyphicon-download"></span> Download Phosphorus Calibration Sites
-                                        </button>
-                                        <button type="button" class="btn-blue" id="nitrogenCalibrationDownload">
-                                            <span class="glyphicon glyphicon-download"></span> Download Nitrogen Calibration Sites
-                                        </button>
-                                    </div>
-                                </p>
-                            </div>
-                            <!--<div class="user-guide-item">
-                                <p>
-                                    <b>Filtered Results from Map</b>
-                                    <div>
-                                        <button type="button" class="btn-blue" id="mapLayerDownload">
-                                            <span class="glyphicon glyphicon-download"></span> Download Filtered Results from the map (Coming soon)
-                                        </button>
-                                    </div>
-                                </p>
-                            </div>-->
-                        </div>
-                        <div role="tabpanel" class="tab-pane" id="fromMapTabPane">
-                            <span class="user-guide-header">From Chart <br/><a style="font-size:xx-small" href="#" id="showMiniChart">(Show Chart Example)</a> </span>
-                            <div hidden="hidden" class="user-guide-item-image" id="miniChartContainer"></div>
-                            <div class="user-guide-item">
-                                <p>
-                                    <b>PNG image of chart</b>
-                                    <div>
-                                        <button type="button" class="btn-blue" id="PNGChartDownload">
-                                            <span class="glyphicon glyphicon-download"></span> PNG Chart Download
-                                        </button>
-                                    </div>
-                                </p>
-                            </div>
-                            <div class="user-guide-item">
-                                <p>
-                                    <b>CSV of chart data</b>
-                                    <div>
-                                        <button type="button" class="btn-blue" id="CSVChartDownload">
-                                            <span class="glyphicon glyphicon-download"></span> CSV Chart Data Download
-                                        </button>
-                                    </div>
-                                </p>
-                            </div>
-                        </div>
+                        </p>
                     </div>
+                    <div class="user-guide-item">
+                        <p style="text-align:center; margin:0 autol">
+                            <b>Calibration Site Information</b>
+                            <div style="text-align:center;">
+                                <button type="button" class="btn-blue" id="phosphorusCalibrationDownload">
+                                    <span class="glyphicon glyphicon-download"></span> Download Phosphorus Calibration Sites
+                                </button>
+                                <button type="button" class="btn-blue" id="nitrogenCalibrationDownload">
+                                    <span class="glyphicon glyphicon-download"></span> Download Nitrogen Calibration Sites
+                                </button>
+                            </div>
+                        </p>
+                    </div>
+                    <!--<div class="user-guide-item">
+                        <p>
+                            <b>Filtered Results from Map</b>
+                            <div>
+                                <button type="button" class="btn-blue" id="mapLayerDownload">
+                                    <span class="glyphicon glyphicon-download"></span> Download Filtered Results from the map (Coming soon)
+                                </button>
+                            </div>
+                        </p>
+                    </div>-->
                 </div>
-                <form id="disclaimerButtons" id="disclaimer-form" class="form-inline" style="text-align:center;">
+                <form id="disclaimerButtons" id="disclaimer-form" class="form-inline" style="text-align:center; padding: 15px 0 5px 0;">
                     <button id="enterMapper" type="button" class="btn-blue" data-dismiss="modal">Close</button>
                 </form>
 
@@ -788,6 +792,7 @@
                                     </div>
                                     <div role="tabpanel" class="tab-pane" id="tableTabPane">
                                         <table class="table tablesorter" id="resultsTable"></table>
+                                        <p>Tabular data available for download in chart tab</p>
                                     </div>
                                 </div>
                             </div>

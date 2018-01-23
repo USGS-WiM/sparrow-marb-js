@@ -1630,12 +1630,16 @@ require([
                     },
                     buttons:{
                         contextButton:{
-                            text: "Chart Options",
-                            height: 40,
+                             text: "Chart Download / Chart Options",
+                            theme: {
+                                fill: '#0F8AFF'
+                            },
                             symbol: null,
+                            symbolFill: '#0F8AFF',
+                            height: 80,
                             align: 'right',
                             menuItems:[
-                                /*{
+                                {
                                     text: 'Download PNG',
                                     onclick: function() {
                                         this.exportChart({
@@ -1654,7 +1658,7 @@ require([
                                     onclick: function(){
                                         this.downloadXLS();
                                     }
-                                },*/
+                                },
                                 {
                                     text: 'Change Background Transparency',
                                     onclick: function(){
@@ -1695,16 +1699,17 @@ require([
                     }
                 },
                 legend: {
-                    align: 'left',
+                     align: 'left',
                     x: 10,
                     verticalAlign: 'top',
-                    y: 25,
+                    y: 40,
                     floating: false,
                     padding: 5,
                     backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || 'white',
                     borderColor: '#CCC',
                     borderWidth: 1,
                     shadow: false,
+                    itemWidth: 300,
                     labelFormatter: function () {
                         var yI = this.name.indexOf(")");
                         var shortName = "";
@@ -2366,6 +2371,15 @@ require([
                     //add to legend.
                     app.legend.layerInfos.push({layer: layer, title: e.currentTarget.innerText});
                     app.legend.refresh();
+
+                    if (app.map.getLayer(layer.id).id != "modelArea"){
+                        /* Cheap, ugly fix 
+                         -- seems that layers that are on by default will show up in legend when re-toggled.
+                        -- getting around that here by checking for the offending layer id above and skipping the legend layer push
+                        */
+                        app.legend.layerInfos.push({layer: layer, title: e.currentTarget.innerText});
+                        app.legend.refresh();
+                    }
 
                 }
             });

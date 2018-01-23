@@ -8,6 +8,12 @@ $('.selectpicker').selectpicker();
 //Change Displayed Metric select options
 function populateMetricOptions(selectedIndex){
     var metricOptions;
+    //var keepMetricIndex = selectedIndex;
+    if ( $("#displayedMetricSelect")[0].selectedOptions.length > 0 ){
+        var previousFieldLabel = $("#displayedMetricSelect")[0].selectedOptions[0].label;
+        var test = $("#displayedMetricSelect option:selected");
+    }    
+    
     if($(".radio input[type='radio']:checked")[0].id == 'radio1'){
         switch (selectedIndex){
             case 0:
@@ -78,12 +84,35 @@ function populateMetricOptions(selectedIndex){
                 break;
         }
     }
-    
+    //remove old and set new metric options, refresh select picker
     $("#displayedMetricSelect").find('option').remove();
     $.each(metricOptions, function(index, value){
         $("#displayedMetricSelect").append(new Option(value.name, value.field));
         $('#displayedMetricSelect').selectpicker('refresh');
     });
+
+    //find previously Selected metric value
+    var selectedMetric = function(previousFieldLabel, metricOptions){
+        for (var i = 0, len = metricOptions.length; i< len; i++){
+            if (previousFieldLabel === metricOptions[i].name){
+                return metricOptions[i];
+            }
+        }
+        return null;
+    }
+    
+    //set the selected metric dropdown here
+    if(previousFieldLabel){
+        if ( selectedMetric(previousFieldLabel, metricOptions) != null ){
+            //set dropdown to previously selected value
+            $("#displayedMetricSelect").selectpicker('val', selectedMetric(previousFieldLabel, metricOptions).field); //use field value, not name
+        } else{
+            //set default to the first new metric option because the previously selected value isn't in the new list.
+            $("#displayedMetricSelect").selectpicker('val', metricOptions[0].field); 
+        }
+    } else{
+        $("#displayedMetricSelect").selectpicker('val', metricOptions[0].field);
+    } 
 
 } // END populateMetricOptions
 
