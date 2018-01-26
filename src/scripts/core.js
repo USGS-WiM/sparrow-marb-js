@@ -2260,6 +2260,15 @@ require([
         showUserGuideModal();
     });
 
+    $('.showAboutDefinitions').click(function(){
+        $('#userGuideModal').modal('hide');
+        $('#downloadDatamodal').modal('hide');
+        $('#geosearchModal').modal('hide');
+        $('#aboutModal').modal('show');
+        console.log("Opening definitions tab");
+        $('#definitionsTab').trigger('click');
+    });
+
     $('#html').niceScroll();
     $('#sidebar').niceScroll();
     $('#sidebar').scroll(function () {
