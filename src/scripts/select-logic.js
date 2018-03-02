@@ -562,15 +562,21 @@ function generateRenderer(){
         classDef.classificationMethod = "quantile";
         classDef.breakCount = 5;
 
-        //symbol WITHOUT borders
-        //classDef.baseSymbol = new SimpleFillSymbol("solid", null, null);
-        
-        //symbol WITH borders
-        classDef.baseSymbol = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID,
+/*         if($('#groupResultsSelect')[0].value == "Catchment"){
+            //symbol WITHOUT borders
+            classDef.baseSymbol = new SimpleFillSymbol("solid", null, null);
+        } else{
+            //symbol WITH borders
+            classDef.baseSymbol = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID,
                 new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
                 new Color([168,168,168]), 0.1)
                 );
-        
+        } */
+
+        classDef.baseSymbol = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID,
+            new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
+            new Color([168,168,168]), 0.1)
+            );
           
         var colorRamp = new AlgorithmicColorRamp();
         //different ramps for phos/nitro
