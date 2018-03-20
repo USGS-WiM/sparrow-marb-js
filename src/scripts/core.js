@@ -1905,12 +1905,6 @@ require([
                 } else{
                     htmlArr.push('<td>'+ value +'</td>');
                 }
-                
-                //comment in if changing back to PNAME
-                //if (key !== "MRB_ID" && key !== "ST_MRB_ID") {
-                    //htmlArr.push('<td>'+ value +'</td>');
-                //}
-        
             });
 
             htmlArr.push("</tr>");
