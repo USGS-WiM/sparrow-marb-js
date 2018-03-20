@@ -1893,24 +1893,24 @@ require([
 
             htmlArr.push("<tr id='row"+rowI+"'>");
             $.each(feature, function(key, value){
+                
                 if (key == 'total'){
-                    htmlArr.splice(-2, 0, '<td>'+ value +'</td>');
+                    var insertSpace; 
+                    if($('#groupResultsSelect')[0].selectedIndex == 0){
+                        insertSpace = -2; //catchment layers have 2 area fields to displace
+                    } else{
+                        insertSpace = -1; //non-catchemnt have only 1 area field
+                    }
+                    htmlArr.splice(insertSpace, 0, '<td>'+ value +'</td>'); //move the total column to the specified place in the array (note: matches headerKeyArr)
                 } else{
                     htmlArr.push('<td>'+ value +'</td>');
                 }
                 
-
                 //comment in if changing back to PNAME
                 //if (key !== "MRB_ID" && key !== "ST_MRB_ID") {
                     //htmlArr.push('<td>'+ value +'</td>');
                 //}
-                
-                /*below can be used to splice 'total' into the second position in the array*/
-                /*if (key !== "total") {
-                    htmlArr.push('<td>'+ value +'</td>');
-                } else{
-                    htmlArr.splice(1, 0, '<td>'+ value +'</td>');
-                }*/
+        
             });
 
             htmlArr.push("</tr>");
