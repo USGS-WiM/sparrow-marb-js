@@ -6,8 +6,9 @@ THIS CONFIG REMOVES CATCHMENT AND AGGREGATE LABELS FROM THE CHARTOUTFIELS OBJECT
 Also removes PNAME and replaces it with MRB_ID and ST_MRB_ID
 */
 
-var appTitle = "MARB Nutrient Loading";
+var appTitle = "Mississippi-Atchafalaya River Basin 2002 Nutrient Loading";
 var appVersion = "v0.9.0";
+//var modalSubtitle = "2002 Nutrient Loading";
 
 var serviceBaseURL = "https://gis.wim.usgs.gov/arcgis/rest/services/SparrowMARBV2/SparrowMARB/MapServer/"; //important! UPDATE rest service URL
 var chartUnits = " (kg/yr.)";
@@ -19,7 +20,10 @@ var splitLayers = [5,6,7,13,14,15]; //important! UPDATE layer Ids of all state s
 
 var mapCenter = [-96.64, 40.744];
 //app.defaultMapCenter = [-87, 42];
-defaultZoomLevel = 5;
+var defaultZoomLevel = 5;
+
+var borderThreshold = 7; //dynamic polygon border threshold.  When zoomed beyond this number borders appear
+var dynamicBorderLayers = ["Catchment"]; //Aggregate layer choices placed in this array will have dynamic borders.  Each string MUST MATCH the text in the Group Results By Select to work.
 
 //download locations
 var phosphorusShapefileURL = 'https://test.wim.usgs.gov/SparrowMARBV2/downloads/marb_shapefiles_phosphorus.zip';

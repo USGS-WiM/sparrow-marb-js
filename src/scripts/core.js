@@ -1860,14 +1860,16 @@ require([
         var selectedLayerId = $('#groupResultsSelect')[0].selectedIndex;
         if (selectedLayerId == 0) {
             //add Basin Area, Upstream Area, and Total
+            headerKeyArr.push("Total");
             headerKeyArr.push("Catchment Area");
             headerKeyArr.push("Upstream Area");
-            headerKeyArr.push("Total");
+            
             //headerKeyArr.splice(1, 0, 'Total'); /* Can be used to add total to a specific point in the headerKeysArr */
             
         } else {
-            headerKeyArr.push("Area");
             headerKeyArr.push("Total");
+            headerKeyArr.push("Area");
+            
             //headerKeyArr.splice(1, 0, 'Total'); /* Can be used to add total to a specific point in the headerKeysArr */
             
         }
@@ -1891,8 +1893,12 @@ require([
 
             htmlArr.push("<tr id='row"+rowI+"'>");
             $.each(feature, function(key, value){
+                if (key == 'total'){
+                    htmlArr.splice(-2, 0, '<td>'+ value +'</td>');
+                } else{
+                    htmlArr.push('<td>'+ value +'</td>');
+                }
                 
-                htmlArr.push('<td>'+ value +'</td>');
 
                 //comment in if changing back to PNAME
                 //if (key !== "MRB_ID" && key !== "ST_MRB_ID") {
@@ -2247,6 +2253,7 @@ require([
 
     function showAboutModal () {
         $("#aboutModalHeader").html('About ' + appTitle + ' ' + appVersion);
+        //$("#aboutModalsubHeader").html(modalSubtitle);
         $('#aboutModal').modal('show');
     }
     $('#aboutNav').click(function(){
