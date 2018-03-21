@@ -41,27 +41,6 @@ function loadEventHandlers() {
         // hope the server sets Content-Disposition: attachment!
         window.location = nitroCalibrationURL;
     });
-    $("#PNGChartDownload").click(function(){
-        app.downloadPNGofChart();
-    });
-    $("#CSVChartDownload").click(function(){
-        app.downloadCSVofChart();
-    })
-    $('#showMiniChart').click(function() {
-        if ($("#miniChartContainer")[0].hidden == true){
-            $("#miniChartContainer")[0].hidden = false;
-            $('#showMiniChart').text('(Hide Chart)');
-        } else {
-            $("#miniChartContainer")[0].hidden = true;
-            $('#showMiniChart').text('(Show Chart Example)');
-        }
-    })
-    $("#showMiniChart").click(function(){
-        $("#miniChartContainer").attr("hidden", )
-    })
-    $("#chartDownload").on('click', function() {
-        app.downloadChartPNG();
-    })
   
     /* AOI EVENTS */
     $('.aoiSelect').on('change', AOIChange);
