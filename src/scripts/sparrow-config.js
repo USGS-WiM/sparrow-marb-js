@@ -25,6 +25,8 @@ var defaultZoomLevel = 5;
 var borderThreshold = 7; //dynamic polygon border threshold.  When zoomed beyond this number borders appear
 var dynamicBorderLayers = ["Catchment"]; //Aggregate layer choices placed in this array will have dynamic borders.  Each string MUST MATCH the text in the Group Results By Select to work.
 
+var initQueryParams = ['ST', 'GP3', 'GP2', 'GP1' ];  //used to query for the AOI dropdown values on app init.  
+
 //download locations
 var phosphorusShapefileURL = 'https://test.wim.usgs.gov/SparrowMARBV2/downloads/marb_shapefiles_phosphorus.zip';
 var nitrogenShapefileURL = 'https://test.wim.usgs.gov/SparrowMARBV2/downloads/marb_shapefiles_nitrogen.zip';
