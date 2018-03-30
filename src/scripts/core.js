@@ -217,7 +217,7 @@ require([
 
     //fire initial query to populate AOIs
     //UPDATE IMPORTANT!  check layer and field names to make sure the fields exist in the service layers
-    setupQueryTask(serviceBaseURL + 5, ['ST', 'GP3', 'GP2', 'GP1' ], '1=1');
+    setupQueryTask(serviceBaseURL + 5, initQueryParams, '1=1');
 
     app.setLayerDefObj = function(newObj){
 
