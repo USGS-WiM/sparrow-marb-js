@@ -1,6 +1,7 @@
 //for jshint
 "use strict";
 // Generated on 2015-04-13 using generator-wim 0.0.1
+//Updated 10.17.2018 - RDS 
 
 var app = {};
 
@@ -2760,7 +2761,7 @@ require([
   });
 
   function showAboutModal() {
-    $("#aboutModalHeader").html("About " + appTitle + " " + appVersion);
+    $("#aboutModalHeader").html("About " + appTitle + " ");
     //$("#aboutModalsubHeader").html(modalSubtitle);
     $("#aboutModal").modal("show");
   }
