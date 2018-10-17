@@ -2760,7 +2760,7 @@ require([
   });
 
   function showAboutModal() {
-    $("#aboutModalHeader").html("About " + appTitle + " " + appVersion);
+    $("#aboutModalHeader").html("About " + appTitle + " ");
     //$("#aboutModalsubHeader").html(modalSubtitle);
     $("#aboutModal").modal("show");
   }
