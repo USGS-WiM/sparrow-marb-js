@@ -7,10 +7,10 @@ Also removes PNAME and replaces it with MRB_ID and ST_MRB_ID
 */
 
 var appTitle = "Mississippi-Atchafalaya River Basin 2002 Nutrient Loading";
-var appVersion = "v0.9.0";
+var appVersion = "v1.0.0";
 //var modalSubtitle = "2002 Nutrient Loading";
 
-var serviceBaseURL = "https://gis.wim.usgs.gov/arcgis/rest/services/SparrowMARBV2/SparrowMARB/MapServer/"; //important! UPDATE rest service URL
+var serviceBaseURL = "https://sparrowtest.wim.usgs.gov/arcgis/rest/services/SparrowMARB/SparrowMARB/MapServer/"; //important! UPDATE rest service URL
 var chartUnits = " (kg/yr.)";
 var chartFeatureMax = 2500;  //chart will not be available if more than this many polygons are showing on map.
 
@@ -28,10 +28,10 @@ var dynamicBorderLayers = ["Catchment"]; //Aggregate layer choices placed in thi
 var initQueryParams = ['ST', 'GP3', 'GP2', 'GP1' ];  //used to query for the AOI dropdown values on app init.  
 
 //download locations
-var phosphorusShapefileURL = 'https://test.wim.usgs.gov/SparrowMARBV2/downloads/marb_shapefiles_phosphorus.zip';
-var nitrogenShapefileURL = 'https://test.wim.usgs.gov/SparrowMARBV2/downloads/marb_shapefiles_nitrogen.zip';
-var phosCalibrationURL = 'https://test.wim.usgs.gov/SparrowMARBV2/downloads/marb_phosphorus_calibration_sites.zip';
-var nitroCalibrationURL = 'https://test.wim.usgs.gov/SparrowMARBV2/downloads/marb_nitrogen_calibration_sites.zip';
+var phosphorusShapefileURL = 'https://sparrow.wim.usgs.gov/marb/downloads/marb_shapefiles_phosphorus.zip';
+var nitrogenShapefileURL = 'https://sparrow.wim.usgs.gov/marb/downloads/marb_shapefiles_nitrogen.zip';
+var phosCalibrationURL = 'https://sparrow.wim.usgs.gov/marb/downloads/marb_phosphorus_calibration_sites.zip';
+var nitroCalibrationURL = 'https://sparrow.wim.usgs.gov/marb/downloads/marb_nitrogen_calibration_sites.zip';
 
 var tableOutFields = [
     { field: "FID", name: "Unique Feature Id"},

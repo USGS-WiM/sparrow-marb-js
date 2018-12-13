@@ -1069,9 +1069,10 @@ Mitch GH Issues Aug 28
     display: block !important;
 }
 
-.aoiSelect{
+/* unnecessary with current version of bootstrap-select */
+/* .aoiSelect{
     padding:5px;
-}
+} */
 .esriMapContainer{
 	width: 100% !important;
 	height: 100% !important;
