@@ -1,6 +1,7 @@
 //for jshint
 "use strict";
 // Generated on 2015-04-13 using generator-wim 0.0.1
+//Updated 10.17.2018 - RDS 
 
 var app = {};
 
@@ -2760,7 +2761,7 @@ require([
   });
 
   function showAboutModal() {
-    $("#aboutModalHeader").html("About " + appTitle + " " + appVersion);
+    $("#aboutModalHeader").html("About " + appTitle + " ");
     //$("#aboutModalsubHeader").html(modalSubtitle);
     $("#aboutModal").modal("show");
   }
@@ -2921,7 +2922,7 @@ require([
         var button = $(
           '<div class="btn-group-vertical lyrTogDiv" style="cursor: pointer;" > <button id="' +
             layer.id +
-            '"type="button" class="btn btn-default active" aria-pressed="true" style="font-weight: bold;text-align: left"><i class="glyphspan fa fa-check-square-o"></i>&nbsp;&nbsp;' +
+            '"type="button" class="btn btn-default active" aria-pressed="true" style="font-weight: bold;text-align: left"><i class="glyphspan fa fa-check-square"></i>&nbsp;&nbsp;' +
             layerName +
             '<span id="opacity' +
             camelize(layerName) +
@@ -2983,10 +2984,12 @@ require([
                     title: e.currentTarget.innerText
                 });
                 app.legend.refresh();
+
+                //TODO: note that layers that are turned on won't show up in the legend on instantiation
             }
-        } 
-        //TODO note that if layers are checked as visible they won't show up on legend instantiation
-      });
+        }
+        
+    });
 
       //group heading logic
       if (showGroupHeading) {

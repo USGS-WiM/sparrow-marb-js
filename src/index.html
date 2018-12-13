@@ -236,7 +236,7 @@
 
                     </div>
                     <div role="tabpanel" class="tab-pane active" id="dataLimitationsTabPane">
-                        </br>
+                        <br/>
                         <p class="p-meta p-light fullwidth">
                             <b>The relationship between the scale of reporting of model results and uncertainty:</b>
                             <br/> Model results can be displayed at several watershed scales. The smallest scale that could be
@@ -291,7 +291,7 @@
 
                     </div>
                     <div role="tabpanel" class="tab-pane" id="definitionsTabPane">
-                        </br>
+                        <br/>
 
                         <p class="p-meta p-light fullwidth">
                             <b>Incremental Load</b>
@@ -414,10 +414,11 @@
 
 
                         </p>
+                        <p><b>Version</b> v1.0.0 </p>
                         <p class="p-meta p-light fullwidth">
                             <b>Link to SPARROW REST Services:</b>
                             <br/>
-                            <a href="https://gis.wim.usgs.gov/arcgis/rest/services/SparrowMARBV2/MapServer/" target="_blank">SPARROW MARB REST Services</a>
+                            <a href="https://sparrowtest.wim.usgs.gov/arcgis/rest/services/SparrowMARB/SparrowMARB/MapServer/" target="_blank">SPARROW MARB REST Services</a>
                         </p>
 
                     </div>
@@ -758,6 +759,9 @@
                         <button id="btnGray" class="btn btn-default basemapBtn equalize">
                             <img class="basemapThumb" alt="" src="images/gray.jpg">
                             <br class="basemapThumb">Gray</button>
+                        <button id="btnDark" class="btn btn-default basemapBtn equalize">
+                            <img class="basemapThumb" alt="" src="images/Dark_Canvas.jpg">
+                            <br class="basemapThumb">Dark</button>
                         <button id="btnOSM" class="btn btn-default basemapBtn equalize">
                             <img class="basemapThumb" alt="" src="images/osm.jpg">
                             <br class="basemapThumb">OSM</button>
@@ -825,22 +829,22 @@
                         <hr/>
 
                         <h6 class="alignc">Area of Interest</h6>
-                        <select id="st-select" class="selectpicker 0 aoiSelect" title="State" data-size="10"></select>
+                        <select id="st-select" class="selectpicker 0 aoiSelect" title="State" data-size="10" data-width="100%"></select>
 
-                        <select id="grp1-select" class="selectpicker 1 aoiSelect" title="Main River Basin" data-size="10"></select>
+                        <select id="grp1-select" class="selectpicker 1 aoiSelect" title="Main River Basin" data-size="10" data-width="100%"></select>
 
-                        <select id="grp2-select" class="selectpicker 2 aoiSelect" title="Tributary" data-size="10"></select>
+                        <select id="grp2-select" class="selectpicker 2 aoiSelect" title="Tributary" data-size="10" data-width="100%"></select>
 
-                        <select id="grp3-select" class="selectpicker 3 aoiSelect" title="HUC8" data-size="10"></select>
+                        <select id="grp3-select" class="selectpicker 3 aoiSelect" title="HUC8" data-size="10" data-width="100%"></select>
 
-                        <button type="button" class="btn-blue" id="clearAOIButton" <span class="glyphicon glyphicon-remove">
-                            </span> Clear Area of Interest
+                        <button type="button" class="btn-blue" id="clearAOIButton"> <span class="glyphicon glyphicon-remove"></span> 
+                            Clear Area of Interest
                         </button>
 
                         <hr/>
 
                         <h6 class="alignc">Group Results By</h6>
-                        <select id="groupResultsSelect" class="selectpicker nonAOISelect">
+                        <select id="groupResultsSelect" class="selectpicker nonAOISelect" data-width="100%">
                             <option>Catchment</option>
                             <option>HUC8</option>
                             <option>Tributary</option>
