@@ -2948,43 +2948,44 @@ require([
       //click listener for regular
       button.click(function(e) {
         //toggle checkmark
-        $(this)
-          .find("i.glyphspan")
-          .toggleClass("fa-check-square-o fa-square-o");
-        $(this)
-          .find("button")
-          .button("toggle");
+        if (e.currentTarget.firstElementChild.id != "SparrowRanking"){
+            $(this)
+                .find("i.glyphspan")
+                .toggleClass("fa-check-square-o fa-square-o");
+            $(this)
+                .find("button")
+                .button("toggle");
 
-        e.preventDefault();
-        e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
 
-        $("#" + camelize(layerName)).toggle();
+            $("#" + camelize(layerName)).toggle();
 
-        //layer toggle
-        if (layer.visible) {
-          layer.setVisibility(false);
-          //find id, remove from legend
-          var ids = [];
-          $.each(app.legend.layerInfos, function(i, infos) {
-            ids.push(infos.layer.id);
-          });
+            //layer toggle
+            if (layer.visible) {
+                layer.setVisibility(false);
+                //find id, remove from legend
+                var ids = [];
+                $.each(app.legend.layerInfos, function(i, infos) {
+                    ids.push(infos.layer.id);
+                });
 
-          var index = ids.indexOf(layer.id);
-          if (index > -1) {
-            app.legend.layerInfos.splice(index, 1);
-          }
-          app.legend.refresh();
-        } else {
-          layer.setVisibility(true);
-          //add to legend.
-          app.legend.layerInfos.push({
-            layer: layer,
-            title: e.currentTarget.innerText
-          });
-          app.legend.refresh();
-
-          //TODO note that if layers are checked as visible they won't show up on legend instantiation
-        }
+                var index = ids.indexOf(layer.id);
+                if (index > -1) {
+                    app.legend.layerInfos.splice(index, 1);
+                }
+                app.legend.refresh();
+            } else {
+                layer.setVisibility(true);
+                //add to legend.
+                app.legend.layerInfos.push({
+                    layer: layer,
+                    title: e.currentTarget.innerText
+                });
+                app.legend.refresh();
+            }
+        } 
+        //TODO note that if layers are checked as visible they won't show up on legend instantiation
       });
 
       //group heading logic
