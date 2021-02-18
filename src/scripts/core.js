@@ -1,12 +1,12 @@
 //for jshint
 "use strict";
 // Generated on 2015-04-13 using generator-wim 0.0.1
-//Updated 10.17.2018 - RDS 
+//Updated 10.17.2018 - RDS
 
 var app = {};
 
 // Get toast and page loader ready
-$(document).ready(function() {
+$(document).ready(function () {
   //$("#page-loader").fadeOut();
   //$("#toast-fixed").fadeOut();
   $(".nav-title").html(appTitle);
@@ -51,8 +51,8 @@ require([
   "dojo/dom",
   "dojo/dom-class",
   "dojo/on",
-  "dojo/domReady!"
-], function(
+  "dojo/domReady!",
+], function (
   arcgisUtils,
   Map,
   QueryTask,
@@ -111,13 +111,13 @@ require([
   app.map = Map("mapDiv", {
     basemap: "gray",
     center: app.defaultMapCenter,
-    zoom: app.defaultZoom
+    zoom: app.defaultZoom,
   });
 
   //button for returning to initial extent
   app.home = new HomeButton(
     {
-      map: app.map
+      map: app.map,
     },
     "homeButton"
   );
@@ -126,7 +126,7 @@ require([
   //button for finding and zooming to user's location
   app.locate = new LocateButton(
     {
-      map: app.map
+      map: app.map,
     },
     "locateButton"
   );
@@ -139,7 +139,7 @@ require([
       autoComplete: true,
       arcgisGeocoder: true,
       autoNavigate: false,
-      map: app.map
+      map: app.map,
     },
     "geosearch"
   );
@@ -148,53 +148,82 @@ require([
   app.geocoder.on("findResults", geocodeResults);
   app.geocoder.on("clear", app.clearFindGraphics);
 
-  //TX WSC Search API
-  search_api.create("geosearch_usgs", {
-    on_result: function(o) {
-      // what to do when a location is found
-      // o.result is geojson point feature of location with properties
-      var noExtents = ["GNIS_MAJOR", "GNIS_MINOR", "ZIPCODE", "AREACODE"];
-      var noExtentCheck = noExtents.indexOf(o.result.properties["Source"]);
-      if (noExtentCheck == -1) {
-        app.map.setExtent(
-          new esri.geometry.Extent({
-            xmin: o.result.properties.LonMin,
-            ymin: o.result.properties.LatMin,
-            xmax: o.result.properties.LonMax,
-            ymax: o.result.properties.LatMax,
-            spatialReference: { wkid: 4326 }
-          }),
-          true
-        );
-      } else {
-        app.map.centerAndZoom(
-          new Point(o.result.properties.Lon, o.result.properties.Lat),
-          12
-        );
-      }
+  function showModal() {
+    $("#geosearchModal").modal("show");
+  }
 
-      // open popup at location listing all properties
-      app.map.infoWindow.setTitle("Search Result");
-      app.map.infoWindow.setContent(
-        $
-          .map(Object.keys(o.result.properties), function(property) {
-            return "<b>" + property + ": </b>" + o.result.properties[property];
-          })
-          .join("<br/>")
-      );
-      // Close modal
-      $("#geosearchModal").modal("hide");
+  // Geosearch nav menu is selected
+  $("#geosearchNav").click(function () {
+    // create search_api widget in element "geosearch"
+    var isItUP = true;
+    try {
+      search_api;
+    } catch (err) {
+      isItUP = false;
+      console.log("search api did not respond");
+    }
 
-      app.map.infoWindow.show(
-        new Point(o.result.properties.Lon, o.result.properties.Lat)
-      );
-    },
-    include_usgs_sw: true,
-    include_huc2: true,
-    include_huc4: true,
-    include_huc6: true,
-    include_huc8: true,
-    include_huc12: true
+    if (isItUP) {
+      showModal();
+      console.log("init");
+      search_api.create("geosearch", {
+        on_result: function (o) {
+          // what to do when a location is found
+          // o.result is geojson point feature of location with properties
+          // zoom to location
+          require(["esri/geometry/Extent"], function (Extent) {
+            var noExtents = ["GNIS_MAJOR", "GNIS_MINOR", "ZIPCODE", "AREACODE"];
+            var noExtentCheck = noExtents.indexOf(
+              o.result.properties["Source"]
+            );
+            $("#geosearchModal").modal("hide");
+            if (noExtentCheck == -1) {
+              app.map.setExtent(
+                new esri.geometry.Extent({
+                  xmin: o.result.properties.LonMin,
+                  ymin: o.result.properties.LatMin,
+                  xmax: o.result.properties.LonMax,
+                  ymax: o.result.properties.LatMax,
+                  spatialReference: { wkid: 4326 },
+                }),
+                true
+              );
+            } else {
+              //map.setCenter();
+              require(["esri/geometry/Point"], function (Point) {
+                app.map.centerAndZoom(
+                  new Point(o.result.properties.Lon, o.result.properties.Lat),
+                  12
+                );
+              });
+            }
+          });
+        },
+        "include_usgs_sw": true,
+        "include_huc2": true,
+        "include_huc4": true,
+        "include_huc6": true,
+        "include_huc8": true,
+        "include_huc10": true,
+        "include_huc12": true,
+        "verbose": false,
+
+        on_failure: function (o) {
+          $("#test").html(
+            "Sorry, a location could not be found in search for '" +
+              o.val() +
+              "'"
+          );
+          $("#invalidSearchLocationModal").modal("show");
+        },
+      });
+    } else {
+      showsearchDownModal();
+    }
+
+    function showsearchDownModal() {
+      $("#searchDownModal").modal("show");
+    }
   });
 
   var layerDefObj = {};
@@ -207,17 +236,17 @@ require([
   loadEventHandlers();
 
   if (typeof esri.layers.Layer.prototype._errorHandler == "function") {
-    esri.layers.Layer.prototype._errorHandler = function(error) {
+    esri.layers.Layer.prototype._errorHandler = function (error) {
       if (error && error.message && error.message == "xhr cancelled") {
         return;
         this.onError(error);
       }
     };
 
-    dojo.config.deferredOnError = function(e) {};
+    dojo.config.deferredOnError = function (e) {};
     dojo._ioSetArgs2 = dojo._ioSetArgs;
-    dojo._ioSetArgs = function(_14, _15, _16, _17) {
-      return dojo._ioSetArgs2(_14, _15, _16, function(a, b) {
+    dojo._ioSetArgs = function (_14, _15, _16, _17) {
+      return dojo._ioSetArgs2(_14, _15, _16, function (a, b) {
         return a;
       });
     };
@@ -227,7 +256,7 @@ require([
   //UPDATE IMPORTANT!  check layer and field names to make sure the fields exist in the service layers
   setupQueryTask(serviceBaseURL + 5, initQueryParams, "1=1");
 
-  app.setLayerDefObj = function(newObj) {
+  app.setLayerDefObj = function (newObj) {
     //UPDATE NOTE: need 1 case for every AOI select
     switch (newObj.selectedId) {
       case "st-select":
@@ -245,7 +274,7 @@ require([
     }
     // disable available options in the Group By dropdown based on choses in layerDefObj
     // first enable all options and refresh, then disable only those needed and refresh
-    $("#groupResultsSelect option").each(function() {
+    $("#groupResultsSelect option").each(function () {
       this.disabled = false;
     });
     if (layerDefObj.AOI3) {
@@ -279,11 +308,11 @@ require([
     app.updateAOIs(newObj.selectedId);
   };
 
-  app.getLayerDefObj = function() {
+  app.getLayerDefObj = function () {
     return layerDefObj;
   };
 
-  app.clearLayerDefObj = function() {
+  app.clearLayerDefObj = function () {
     layerDefObj = {};
     $("#st-select").empty();
     $("#grp1-select").empty();
@@ -294,7 +323,7 @@ require([
   };
 
   //disabling dropdown need to clear selection
-  app.clearOneLayerDefObj = function(whichOne) {
+  app.clearOneLayerDefObj = function (whichOne) {
     var selectID = "";
     switch (whichOne) {
       case "AOIST":
@@ -328,12 +357,12 @@ require([
     }
   };
   //return unique list of AOIs for dropdowns based on which property to filter by
-  var getUniqueArray = function(originalArray, prop) {
+  var getUniqueArray = function (originalArray, prop) {
     var uniqueArray = [];
     for (var i in originalArray) {
       if (
         uniqueArray
-          .map(function(p) {
+          .map(function (p) {
             return p;
           })
           .indexOf(originalArray[i][prop]) < 0
@@ -346,7 +375,7 @@ require([
   };
 
   // called from app.updateAOIs when all for aois are selected. the one just updated is passed in and returns array of info needed several times
-  var fourAOIsSelected = function(selectedId) {
+  var fourAOIsSelected = function (selectedId) {
     var arrayForOther3AOIs = [];
     var prop1 = "";
     var select1 = "";
@@ -363,7 +392,7 @@ require([
     switch (selectedId) {
       case "st-select":
         $("#grp1-select").empty(); //filter by st, aoi2 & aoi3
-        filteredAOI1 = AllAOIOptions.filter(function(s) {
+        filteredAOI1 = AllAOIOptions.filter(function (s) {
           return (
             s.ST === layerDefObj.AOIST &&
             s.GP2 == layerDefObj.AOI2 &&
@@ -374,7 +403,7 @@ require([
         select1 = "#grp1-select";
         whichAoi1 = "AOI1";
         $("#grp2-select").empty(); //filter by st, aoi1 & aoi3
-        filteredAOI2 = AllAOIOptions.filter(function(s) {
+        filteredAOI2 = AllAOIOptions.filter(function (s) {
           return (
             s.ST === layerDefObj.AOIST &&
             s.GP1 == layerDefObj.AOI1 &&
@@ -385,7 +414,7 @@ require([
         select2 = "#grp2-select";
         whichAoi2 = "AOI2";
         $("#grp3-select").empty(); //filter by st, aoi1 & aoi2
-        filteredAOI3 = AllAOIOptions.filter(function(s) {
+        filteredAOI3 = AllAOIOptions.filter(function (s) {
           return (
             s.ST === layerDefObj.AOIST &&
             s.GP1 == layerDefObj.AOI1 &&
@@ -399,7 +428,7 @@ require([
       case "grp1-select":
         // update st, aoi2, aoi3
         $("#st-select").empty(); //filter by aoi1, aoi2, aoi3
-        filteredAOI1 = AllAOIOptions.filter(function(s) {
+        filteredAOI1 = AllAOIOptions.filter(function (s) {
           return (
             s.GP1 === layerDefObj.AOI1 &&
             s.GP2 == layerDefObj.AOI2 &&
@@ -410,7 +439,7 @@ require([
         select1 = "#st-select";
         whichAoi1 = "AOIST";
         $("#grp2-select").empty(); //filter by aoi1, st, aoi3
-        filteredAOI2 = AllAOIOptions.filter(function(s) {
+        filteredAOI2 = AllAOIOptions.filter(function (s) {
           return (
             s.GP1 === layerDefObj.AOI1 &&
             s.ST == layerDefObj.AOIST &&
@@ -421,7 +450,7 @@ require([
         select2 = "#grp2-select";
         whichAoi2 = "AOI2";
         $("#grp3-select").empty(); //filter by aoi1, st, aoi2
-        filteredAOI3 = AllAOIOptions.filter(function(s) {
+        filteredAOI3 = AllAOIOptions.filter(function (s) {
           return (
             s.GP1 === layerDefObj.AOI1 &&
             s.ST == layerDefObj.AOIST &&
@@ -435,7 +464,7 @@ require([
       case "grp2-select":
         // update st, aoi1, aoi3
         $("#st-select").empty(); //filter by aoi2, aoi1, aoi3
-        filteredAOI1 = AllAOIOptions.filter(function(s) {
+        filteredAOI1 = AllAOIOptions.filter(function (s) {
           return (
             s.GP2 === layerDefObj.AOI2 &&
             s.GP1 == layerDefObj.AOI1 &&
@@ -446,7 +475,7 @@ require([
         select1 = "#st-select";
         whichAoi1 = "AOIST";
         $("#grp1-select").empty(); //filter by aoi2, st, aoi3
-        filteredAOI2 = AllAOIOptions.filter(function(s) {
+        filteredAOI2 = AllAOIOptions.filter(function (s) {
           return (
             s.GP2 === layerDefObj.AOI2 &&
             s.ST == layerDefObj.AOIST &&
@@ -457,7 +486,7 @@ require([
         select2 = "#grp1-select";
         whichAoi2 = "AOI1";
         $("#grp3-select").empty(); //filter by aoi2, st, aoi1
-        filteredAOI3 = AllAOIOptions.filter(function(s) {
+        filteredAOI3 = AllAOIOptions.filter(function (s) {
           return (
             s.GP2 === layerDefObj.AOI2 &&
             s.ST == layerDefObj.AOIST &&
@@ -471,7 +500,7 @@ require([
       case "grp3-select":
         //grp3-select was just updated  // update st, aoi1, aoi2
         $("#st-select").empty(); // filter by aoi3, aoi1, aoi2
-        filteredAOI1 = AllAOIOptions.filter(function(s) {
+        filteredAOI1 = AllAOIOptions.filter(function (s) {
           return (
             s.GP3 === layerDefObj.AOI3 &&
             s.GP1 == layerDefObj.AOI1 &&
@@ -482,7 +511,7 @@ require([
         select1 = "#st-select";
         whichAoi1 = "AOIST";
         $("#grp1-select").empty(); // filter by aoi3, st, aoi2
-        filteredAOI2 = AllAOIOptions.filter(function(s) {
+        filteredAOI2 = AllAOIOptions.filter(function (s) {
           return (
             s.GP3 === layerDefObj.AOI3 &&
             s.ST == layerDefObj.AOIST &&
@@ -493,7 +522,7 @@ require([
         select2 = "#grp1-select";
         whichAoi2 = "AOI1";
         $("#grp2-select").empty(); // filter by aoi3, st, aoi1
-        filteredAOI3 = AllAOIOptions.filter(function(s) {
+        filteredAOI3 = AllAOIOptions.filter(function (s) {
           return (
             s.GP3 === layerDefObj.AOI3 &&
             s.ST == layerDefObj.AOIST &&
@@ -510,26 +539,26 @@ require([
         filterAOIs: filteredAOI1,
         prop: prop1,
         select: select1,
-        whichAOI: whichAoi1
+        whichAOI: whichAoi1,
       },
       {
         filterAOIs: filteredAOI2,
         prop: prop2,
         select: select2,
-        whichAOI: whichAoi2
+        whichAOI: whichAoi2,
       },
       {
         filterAOIs: filteredAOI3,
         prop: prop3,
         select: select3,
-        whichAOI: whichAoi3
-      }
+        whichAOI: whichAoi3,
+      },
     ];
     return arrayForOther3AOIs;
   };
 
   // called from app.updateAOIs when 3 are selected. returns object containing info needed many times
-  var threeAOIchosenUpdate = function(
+  var threeAOIchosenUpdate = function (
     clearSelect,
     allAOIprop1,
     layerDef1,
@@ -540,7 +569,7 @@ require([
   ) {
     var returnArray = {};
     $(clearSelect).empty(); // filter by st && aoi2
-    var options = AllAOIOptions.filter(function(s) {
+    var options = AllAOIOptions.filter(function (s) {
       return (
         s[allAOIprop1] == layerDefObj[layerDef1] &&
         s[allAOIprop2] == layerDefObj[layerDef2]
@@ -550,13 +579,13 @@ require([
       filteredAOIOptions: options,
       prop: clearSelect,
       select: setSelect,
-      AOI: setAOI
+      AOI: setAOI,
     };
     return returnArray;
   };
 
   // called from app.updateAOIs when 2 are selected. returns object containing info needed many times
-  var twoAOIchosenUpdate = function(
+  var twoAOIchosenUpdate = function (
     clearSelect,
     allAOIprop1,
     layerDef1,
@@ -565,20 +594,20 @@ require([
   ) {
     var returnArray = {};
     $(clearSelect).empty();
-    var Options = AllAOIOptions.filter(function(s) {
+    var Options = AllAOIOptions.filter(function (s) {
       return s[allAOIprop1] == layerDefObj[layerDef1];
     });
     returnArray = {
       filteredAOIOptions: Options,
       prop: clearSelect,
       select: setSelect,
-      AOI: setAOI
+      AOI: setAOI,
     };
     return returnArray;
     //extraProp = "GP3"; extraSelect = "#grp3-select"; extraLayerDef = "AOI3";
   };
 
-  app.updateAOIs = function(selectedId) {
+  app.updateAOIs = function (selectedId) {
     // for four AOI options
     var filteredAOIOptions = [];
 
@@ -626,7 +655,7 @@ require([
         if (!layerDefObj.AOI3) {
           // aoi3 needs to be updated using st, aoi1, aoi2
           $("#grp3-select").empty();
-          filteredAOIOptions = AllAOIOptions.filter(function(s) {
+          filteredAOIOptions = AllAOIOptions.filter(function (s) {
             return (
               s.ST == layerDefObj.AOIST &&
               s.GP1 == layerDefObj.AOI1 &&
@@ -701,7 +730,7 @@ require([
         } else if (!layerDefObj.AOI2) {
           // aoi2 needs to be updated using the st, aoi1, aoi3
           $("#grp2-select").empty();
-          filteredAOIOptions = AllAOIOptions.filter(function(s) {
+          filteredAOIOptions = AllAOIOptions.filter(function (s) {
             return (
               s.ST === layerDefObj.AOIST &&
               s.GP1 == layerDefObj.AOI1 &&
@@ -776,7 +805,7 @@ require([
         } else if (!layerDefObj.AOI1) {
           // aoi1 needs to be updated using st, aoi2, aoi3
           $("#grp1-select").empty();
-          filteredAOIOptions = AllAOIOptions.filter(function(s) {
+          filteredAOIOptions = AllAOIOptions.filter(function (s) {
             return (
               s.ST === layerDefObj.AOIST &&
               s.GP2 == layerDefObj.AOI2 &&
@@ -851,7 +880,7 @@ require([
         } else {
           // st needs to be updated using the aoi1, aoi2, aoi3
           $("#st-select").empty();
-          filteredAOIOptions = AllAOIOptions.filter(function(s) {
+          filteredAOIOptions = AllAOIOptions.filter(function (s) {
             return (
               s.GP1 === layerDefObj.AOI1 &&
               s.GP2 == layerDefObj.AOI2 &&
@@ -975,7 +1004,7 @@ require([
           //st and aoi1 need to be updated using aoi2 and aoi3
           $("#st-select").empty();
           $("#grp1-select").empty();
-          filteredAOIOptions = AllAOIOptions.filter(function(s) {
+          filteredAOIOptions = AllAOIOptions.filter(function (s) {
             return s.GP2 === layerDefObj.AOI2 && s.GP3 == layerDefObj.AOI3;
           });
           //also reupdate the one that is not selectedId ('grp2-select' or 'grp3-select' )
@@ -1006,7 +1035,7 @@ require([
           //st and aoi2 need to be updated using aoi1 and aoi3
           $("#st-select").empty();
           $("#grp2-select").empty();
-          filteredAOIOptions = AllAOIOptions.filter(function(s) {
+          filteredAOIOptions = AllAOIOptions.filter(function (s) {
             return s.GP1 === layerDefObj.AOI1 && s.GP3 == layerDefObj.AOI3;
           });
           //also reupdate the one that is not selectedId ('grp1-select' or 'grp3-select' )
@@ -1037,7 +1066,7 @@ require([
           //st and aoi3 need to be updated using aoi1 and aoi2
           $("#st-select").empty();
           $("#grp3-select").empty();
-          filteredAOIOptions = AllAOIOptions.filter(function(s) {
+          filteredAOIOptions = AllAOIOptions.filter(function (s) {
             return s.GP1 === layerDefObj.AOI1 && s.GP2 == layerDefObj.AOI2;
           });
           //also reupdate the one that is not selectedId ('grp1-select' or 'grp2-select' )
@@ -1068,7 +1097,7 @@ require([
           //aoi1 and aoi2 need to be updated using st and aoi3
           $("#grp1-select").empty();
           $("#grp2-select").empty();
-          filteredAOIOptions = AllAOIOptions.filter(function(s) {
+          filteredAOIOptions = AllAOIOptions.filter(function (s) {
             return s.ST === layerDefObj.AOIST && s.GP3 == layerDefObj.AOI3;
           });
           //also reupdate the one that is not selectedId ('st-select' or 'grp3-select' )
@@ -1099,7 +1128,7 @@ require([
           //aoi1 and aoi3 need to be updated using st and aoi2
           $("#grp1-select").empty();
           $("#grp3-select").empty();
-          filteredAOIOptions = AllAOIOptions.filter(function(s) {
+          filteredAOIOptions = AllAOIOptions.filter(function (s) {
             return s.ST === layerDefObj.AOIST && s.GP2 == layerDefObj.AOI2;
           });
           //also reupdate the one that is not selectedId ('st-select' or 'grp2-select' )
@@ -1130,7 +1159,7 @@ require([
           //aoi2 and aoi3 need to be updated using st and aoi1
           $("#grp2-select").empty();
           $("#grp3-select").empty();
-          filteredAOIOptions = AllAOIOptions.filter(function(s) {
+          filteredAOIOptions = AllAOIOptions.filter(function (s) {
             return s.ST === layerDefObj.AOIST && s.GP1 == layerDefObj.AOI1;
           });
           //also reupdate the one that is not selectedId ('st-select' or 'grp1-select' )
@@ -1186,7 +1215,7 @@ require([
           $("#grp1-select").empty();
           $("#grp2-select").empty();
           $("#grp3-select").empty();
-          filteredAOIOptions = AllAOIOptions.filter(function(s) {
+          filteredAOIOptions = AllAOIOptions.filter(function (s) {
             return s.ST === layerDefObj.AOIST;
           });
           otherThree = ["GP1", "GP2", "GP3"];
@@ -1197,7 +1226,7 @@ require([
           $("#st-select").empty();
           $("#grp2-select").empty();
           $("#grp3-select").empty();
-          filteredAOIOptions = AllAOIOptions.filter(function(s) {
+          filteredAOIOptions = AllAOIOptions.filter(function (s) {
             return s.GP1 === layerDefObj.AOI1;
           });
           otherThree = ["ST", "GP2", "GP3"];
@@ -1208,7 +1237,7 @@ require([
           $("#st-select").empty();
           $("#grp1-select").empty();
           $("#grp3-select").empty();
-          filteredAOIOptions = AllAOIOptions.filter(function(s) {
+          filteredAOIOptions = AllAOIOptions.filter(function (s) {
             return s.GP2 === layerDefObj.AOI2;
           });
           otherThree = ["ST", "GP1", "GP3"];
@@ -1219,7 +1248,7 @@ require([
           $("#st-select").empty();
           $("#grp1-select").empty();
           $("#grp2-select").empty();
-          filteredAOIOptions = AllAOIOptions.filter(function(s) {
+          filteredAOIOptions = AllAOIOptions.filter(function (s) {
             return s.GP3 === layerDefObj.AOI3;
           });
           otherThree = ["ST", "GP1", "GP2"];
@@ -1244,9 +1273,9 @@ require([
   };
 
   //function used several times in above switch case
-  var appendSelectOptions = function(firstOptions, select1_ID, firstAOI) {
+  var appendSelectOptions = function (firstOptions, select1_ID, firstAOI) {
     //set the filtered state options
-    $.each(firstOptions, function(index, option) {
+    $.each(firstOptions, function (index, option) {
       $(select1_ID).append(new Option(option));
     });
     $(select1_ID).selectpicker("refresh");
@@ -1256,7 +1285,7 @@ require([
     }
   };
 
-  app.initMapScale = function() {
+  app.initMapScale = function () {
     var scale = app.map.getScale().toFixed(0);
     $("#scale")[0].innerHTML = addCommas(scale);
     var initMapCenter = webMercatorUtils.webMercatorToGeographic(
@@ -1266,7 +1295,7 @@ require([
     $("#longitude").html(initMapCenter.x.toFixed(3));
   };
 
-  app.updateMousePosition = function(cursorPosition) {
+  app.updateMousePosition = function (cursorPosition) {
     $("#mapCenterLabel").css("display", "none");
     if (cursorPosition.mapPoint !== null) {
       var geographicMapPt = webMercatorUtils.webMercatorToGeographic(
@@ -1277,7 +1306,7 @@ require([
     }
   };
 
-  app.updateMapCenter = function(extent) {
+  app.updateMapCenter = function (extent) {
     //displays latitude and longitude of map center
     $("#mapCenterLabel").css("display", "inline");
     var geographicMapCenter = webMercatorUtils.webMercatorToGeographic(
@@ -1287,19 +1316,19 @@ require([
     $("#longitude").html(geographicMapCenter.x.toFixed(3));
   };
 
-  app.setupDraggableInfoWindow = function() {
+  app.setupDraggableInfoWindow = function () {
     //code for adding draggability to infoWindow. http://www.gavinr.com/2015/04/13/arcgis-javascript-draggable-infowindow/
     if (app.dragInfoWindows === true) {
       var handle = query(".title", app.map.infoWindow.domNode)[0];
       var dnd = new Moveable(app.map.infoWindow.domNode, {
-        handle: handle
+        handle: handle,
       });
 
       // when the infoWindow is moved, hide the arrow:
       on(
         dnd,
         "FirstMove",
-        function() {
+        function () {
           // hide pointer and outerpointer (used depending on where the pointer is shown)
           var arrowNode = query(".outerPointer", app.map.infoWindow.domNode)[0];
           domClass.add(arrowNode, "hidden");
@@ -1311,7 +1340,7 @@ require([
     }
   };
 
-  app.executeIdentifyTask = function(evt) {
+  app.executeIdentifyTask = function (evt) {
     app.shiftKey = evt.shiftKey;
     //console.log(evt);
     var sparrowLayer = app.map.getLayer("SparrowRanking").visibleLayers[0];
@@ -1344,10 +1373,10 @@ require([
     //Deferred callback
     var deferred = app.identifyTask
       .execute(app.identifyParams)
-      .addCallback(function(response) {
+      .addCallback(function (response) {
         //if in selection mode and not unselecting, highlight shape and add to array of chosen shapes
         if (app.clickSelectionActive) {
-          $.each(response, function(i, respObj) {
+          $.each(response, function (i, respObj) {
             var feature = respObj.feature;
             var respValue =
               typeof respObj.value != "string"
@@ -1375,7 +1404,7 @@ require([
               $("#chartButton").html("Show Chart for selected features");
             } else {
               //removing
-              var symbolToRemove = app.map.graphics.graphics.filter(function(
+              var symbolToRemove = app.map.graphics.graphics.filter(function (
                 g
               ) {
                 return g.symbol.id == respObj.value;
@@ -1396,7 +1425,7 @@ require([
           app.map.graphics.clear();
           //check response length to make sure a feature was clicked  (handles Layerdefs automatically)
           if (response.length >= 1) {
-            $.each(response, function(index, responseObj) {
+            $.each(response, function (index, responseObj) {
               //UPDATE important! -- make sure that layerIds in 'if' statements below match calibration sites layers in the REST services.
               //Phosphorus Calibration Site InfoWindow
               if (responseObj.layerId === 18) {
@@ -1507,7 +1536,7 @@ require([
                   response[0].displayFieldName + " = " + response[0].value;
               }
 
-              $.each(fields, function(index, obj) {
+              $.each(fields, function (index, obj) {
                 //console.log(obj.attribute);
               });
               //No infoWindow, just call the chart query
@@ -1523,7 +1552,7 @@ require([
     app.map.graphics.clear();
   };
 
-  app.createTableQuery = function() {
+  app.createTableQuery = function () {
     $("#resultsTable").empty();
 
     var tableQueryTask;
@@ -1552,7 +1581,7 @@ require([
     //tableQueryTask.execute(tableQuery, buildTable);
   }; //END createTableQuery()
 
-  app.createChartQuery = function(optionalWhereClause) {
+  app.createChartQuery = function (optionalWhereClause) {
     //need to check if optionalWhereClause is provided -- this is an onclick or multiple click select event and the chart can be shown.
     if (
       app.polygonResponseCount > chartFeatureMax &&
@@ -1566,7 +1595,7 @@ require([
           " features. Please narrow Area of Interest or Group Results and try again."
       );
       $("#toast-fixed").show();
-      setTimeout(function() {
+      setTimeout(function () {
         $("#toast-fixed").hide();
       }, 4000);
     } else {
@@ -1576,7 +1605,7 @@ require([
           height: "800px",
           width: "800px",
           top: "50px",
-          left: "510px"
+          left: "510px",
         });
         $("#chartWindowContent").addClass("content-loading");
       } else {
@@ -1611,7 +1640,7 @@ require([
 
       //grab attributes from chartOutfields object
       var outfieldsArr = [];
-      $.each(chartFieldsObj, function(index, obj) {
+      $.each(chartFieldsObj, function (index, obj) {
         outfieldsArr.push(obj.attribute); //get attribute value ONLY
       });
 
@@ -1628,14 +1657,14 @@ require([
     } // end polygoncount is less that 2500
   }; //END app.createChartQuery
 
-  app.downloadChartPNG = function() {
+  app.downloadChartPNG = function () {
     /*    Highcharts.exportChart({
             filename: 'ChartImage'
         });*/
   };
   // used several times to get the configuration object needed to perform operation
-  app.getLayerConfigObject = function(sparrowLayerId) {
-    var configObject = (function(tempLayerId) {
+  app.getLayerConfigObject = function (sparrowLayerId) {
+    var configObject = (function (tempLayerId) {
       switch (tempLayerId) {
         /////BEGIN PHOSPHORUS LAYERS___________________________________________________________
         case 0:
@@ -1704,13 +1733,13 @@ require([
   //WHEN UPDATING APP: check strings, especially ST
   //Populates AOI Selects on app INIT
   function populateGrp2Arr(response) {
-    $.each(response.features, function(index, feature) {
+    $.each(response.features, function (index, feature) {
       Grp2NamDescArr.push(feature.attributes);
     });
   }
 
   function populateAOI(response) {
-    $.each(response.features, function(index, feature) {
+    $.each(response.features, function (index, feature) {
       AllAOIOptions.push(feature.attributes);
     });
 
@@ -1726,22 +1755,22 @@ require([
     var grp1Options = getUniqueArray(AllAOIOptions, "GP1");
     var STOptions = getUniqueArray(AllAOIOptions, "ST");
 
-    $.each(grp3Options, function(index, option) {
+    $.each(grp3Options, function (index, option) {
       if (option != " ") {
         $("#grp3-select").append(new Option(option));
       }
     });
-    $.each(grp2Options, function(index, option) {
+    $.each(grp2Options, function (index, option) {
       if (option != " ") {
         $("#grp2-select").append(new Option(option));
       }
     });
-    $.each(grp1Options, function(index, option) {
+    $.each(grp1Options, function (index, option) {
       if (option != " ") {
         $("#grp1-select").append(new Option(option));
       }
     });
-    $.each(STOptions, function(index, option) {
+    $.each(STOptions, function (index, option) {
       $("#st-select").append(new Option(option));
     });
 
@@ -1775,7 +1804,7 @@ require([
   function geosearch() {
     setSearchExtent();
     var def = geocoder.find();
-    def.then(function(res) {
+    def.then(function (res) {
       geocodeResults(res);
     });
     // Close modal
@@ -1821,11 +1850,11 @@ require([
       address: stripTitle(place.address),
       score: place.score,
       lat: pt.getLatitude().toFixed(2),
-      lon: pt.getLongitude().toFixed(2)
+      lon: pt.getLongitude().toFixed(2),
     };
     infoTemplate = new PopupTemplate({
       title: "{address}",
-      description: "Latitude: {lat}<br/>Longitude: {lon}"
+      description: "Latitude: {lat}<br/>Longitude: {lon}",
     });
     graphic = new Graphic(pt, symbol, attributes, infoTemplate);
     // Add to map
@@ -1849,7 +1878,7 @@ require([
       url: url,
       contentType: "image/png",
       width: xWidth,
-      height: yHeight
+      height: yHeight,
     });
   }
   function clone(obj) {
@@ -1907,12 +1936,12 @@ require([
     var featureSort = [];
     var tableFeatures = [];
 
-    $.each(response.features, function(index, feature) {
+    $.each(response.features, function (index, feature) {
       // first push these into a separate array for table to use
       tableFeatures.push($.extend(true, {}, feature.attributes));
       /***this function removes any fields ending with "AREA" from the response.features Object. (i.e. DEMIAREA, DEMTAREA, GP1_AREA, etc.)
        The chart was not built to accommodate the extra area fields, but they're necessary for display in the table.***/
-      $.map(Object.keys(feature.attributes), function(val, i) {
+      $.map(Object.keys(feature.attributes), function (val, i) {
         //find ANY INDEX that contains "AREA" in the key
         if (val.indexOf("AREA") > -1) {
           delete feature.attributes[val];
@@ -1931,8 +1960,8 @@ require([
         });*/
 
     var sum = 0;
-    $.each(featureSort, function(index, obj) {
-      $.each(obj, function(i, attribute) {
+    $.each(featureSort, function (index, obj) {
+      $.each(obj, function (i, attribute) {
         //don't try to sum up an strings or ID numbers
         //UPDATE important! -- if catchments ID field is returned make sure the correctly named field is in the catch below.
         if (jQuery.type(attribute) !== "string" && i !== "MRB_ID") {
@@ -1944,7 +1973,7 @@ require([
       tableFeatures[index].total = sum.toFixed(4);
       sum = 0;
     });
-    featureSort.sort(function(a, b) {
+    featureSort.sort(function (a, b) {
       return parseFloat(b.total) - parseFloat(a.total);
     });
 
@@ -1957,21 +1986,21 @@ require([
     //console.log('featureSort', featureSort);
 
     //create array of field names
-    $.each(response.features[0].attributes, function(key, value) {
+    $.each(response.features[0].attributes, function (key, value) {
       categories.push(key);
     });
 
     categories.pop();
 
     //create multidimensional array from query response
-    $.each(categories, function(index, value) {
+    $.each(categories, function (index, value) {
       var data = [];
-      $.each(featureSort, function(innerIndex, feature) {
+      $.each(featureSort, function (innerIndex, feature) {
         if ($("#groupResultsSelect")[0].selectedIndex == 0) {
           //catchments only
           data.push({
             y: feature[value],
-            id: feature["MRB_ID"] || feature["ST_MRB_ID"]
+            id: feature["MRB_ID"] || feature["ST_MRB_ID"],
           }); // TMR ADDED
         } else {
           data.push(feature[value]);
@@ -1985,7 +2014,7 @@ require([
         }***/
     //remove 1st field ('group by') from charting arrays
     categories.shift();
-    $.each(chartArr.shift(), function(key, value) {
+    $.each(chartArr.shift(), function (key, value) {
       // TMR ADDED
       // check to see if catchments, this will be an object otherwise it will be array
       value.y !== undefined
@@ -1997,14 +2026,14 @@ require([
     var sparrowLayerId = app.map.getLayer("SparrowRanking").visibleLayers[0];
     var chartLabelsObj = getChartOutfields(sparrowLayerId);
     var chartLabelsArr = [];
-    $.each(chartLabelsObj, function(index, obj) {
+    $.each(chartLabelsObj, function (index, obj) {
       chartLabelsArr.push(obj.label); //get labels ONLY as arr
     });
 
     // initial table for Table tab
     tableArr = tableFeatures; // featureSort;
     labelArr = [];
-    $.each(chartLabelsArr, function(index, value) {
+    $.each(chartLabelsArr, function (index, value) {
       labelArr.push(value);
     });
     //   labelArr.push("Area"); // for all but catchments
@@ -2017,12 +2046,12 @@ require([
     chartLabelsArr.shift();
 
     //push label array into series
-    $.each(chartLabelsArr, function(index, value) {
+    $.each(chartLabelsArr, function (index, value) {
       series.push({ name: value, turboThreshold: 3000 });
     });
 
     //chartArr is a multi-dimensional array.  Each item in chartArr is an array of series data.
-    $.each(chartArr, function(index, value) {
+    $.each(chartArr, function (index, value) {
       series[index].data = chartArr[index];
     });
 
@@ -2076,7 +2105,7 @@ require([
       var label;
 
       var configObject = app.getLayerConfigObject(layerId);
-      $.each(configObject, function(index, object) {
+      $.each(configObject, function (index, object) {
         if (object.field == $("#displayedMetricSelect").val()) {
           label = object.name;
         }
@@ -2096,7 +2125,7 @@ require([
       draggable: true,
       minWidth: 800,
       minHeight: 800,
-      maxHeight: 1000
+      maxHeight: 1000,
     });
 
     $("#chartWindowDiv").addClass("chartWindowMaximize");
@@ -2146,7 +2175,7 @@ require([
     }
 
     //moved this out of exectureIdentifyTask()
-    $("#popupChartButton").on("click", function() {
+    $("#popupChartButton").on("click", function () {
       app.formattedHighlightString = "";
       app.map.graphics.clear();
       app.createChartQuery();
@@ -2157,7 +2186,7 @@ require([
     var xPos = instance.getPosition().x;
     instance.setPosition(xPos, 50);
 
-    $("#chartClose").on("click", function() {
+    $("#chartClose").on("click", function () {
       app.map.graphics.clear();
       $("#chartButton").html("Show Chart for All Map Features");
       app.formattedHighlightString = "";
@@ -2167,7 +2196,7 @@ require([
     });
 
     //need listener to resize chart
-    $("#chartWindowDiv").resize(function() {
+    $("#chartWindowDiv").resize(function () {
       var height = $("#chartWindowDiv").height();
       var width = $("#chartWindowDiv").width();
       $("#chartWindowContainer")
@@ -2183,12 +2212,12 @@ require([
 
     var chart = $("#chartWindowContainer").highcharts();
 
-    $(function() {
+    $(function () {
       Highcharts.setOptions({
         lang: {
-          thousandsSep: ","
+          thousandsSep: ",",
         },
-        colors: colorArr
+        colors: colorArr,
       });
       var buttons = Highcharts.getOptions().exporting.buttons.contextButton
         .menuItems;
@@ -2204,7 +2233,7 @@ require([
           //},
           backgroundColor: "rgba(255, 255, 255, 0.45)",
           events: {
-            selection: function(e) {
+            selection: function (e) {
               var categoryArr = [];
 
               if (e.xAxis) {
@@ -2212,8 +2241,8 @@ require([
                 var newArr = [];
 
                 if (xAxis) {
-                  $.each(this.series, function(i, series) {
-                    $.each(series.points, function(j, point) {
+                  $.each(this.series, function (i, series) {
+                    $.each(series.points, function (j, point) {
                       //find data inside max/min selected axes
                       if (point.x >= xAxis.min && point.x <= xAxis.max) {
                         //check if point.category is already in the array, if not add it
@@ -2252,7 +2281,7 @@ require([
 
               if (e.resetSelection != true) {
                 var categoryStr = "";
-                $.each(categoryArr, function(i, category) {
+                $.each(categoryArr, function (i, category) {
                   // only MRB_ID is a number, ST_MRB_ID is a string
                   //categoryStr += fieldName == "MRB_ID" ?  + category + ", " : "'" + category + "', ";
                   categoryStr += "'" + category + "', ";
@@ -2263,13 +2292,13 @@ require([
                 queryTask.execute(graphicsQuery, responseHandler);
 
                 function responseHandler(response) {
-                  $.each(app.map.graphics.graphics, function(i, obj) {
+                  $.each(app.map.graphics.graphics, function (i, obj) {
                     if (obj.symbol.id == "zoomhighlight") {
                       app.map.graphics.remove(obj);
                     }
                   });
 
-                  $.each(response.features, function(i, feature) {
+                  $.each(response.features, function (i, feature) {
                     var feature = feature;
                     var selectedSymbol = new SimpleLineSymbol(
                       SimpleLineSymbol.STYLE_SOLID,
@@ -2288,13 +2317,13 @@ require([
                   queryTask.execute(graphicsQuery, responseHandler);
 
                   function responseHandler(response) {
-                    $.each(app.map.graphics.graphics, function(i, obj) {
+                    $.each(app.map.graphics.graphics, function (i, obj) {
                       if (obj.symbol.id == "zoomhighlight") {
                         app.map.graphics.remove(obj);
                       }
                     });
                     //var feature, selectedSymbol;
-                    $.each(response.features, function(i, feature) {
+                    $.each(response.features, function (i, feature) {
                       var feature = feature;
                       var selectedSymbol = new SimpleLineSymbol(
                         SimpleLineSymbol.STYLE_SOLID,
@@ -2309,23 +2338,23 @@ require([
                 }
                 filterTable();
               }
-            }
-          }
+            },
+          },
         },
         title: {
-          text: null
+          text: null,
         },
         subtitle: {
-          text: null
+          text: null,
         },
         exporting: {
           enabled: true,
           chartOptions: {
             chart: {
               events: {
-                load: function() {
+                load: function () {
                   this.chartBackground.attr({
-                    fill: "rgba(255, 255, 255, 1.0)"
+                    fill: "rgba(255, 255, 255, 1.0)",
                   });
                   // this.plotBackground.attr({ fill: 'rgba(255, 255, 255, 1.0)'  });
                   this.renderer
@@ -2337,15 +2366,15 @@ require([
                       30
                     )
                     .add();
-                }
-              }
-            }
+                },
+              },
+            },
           },
           buttons: {
             contextButton: {
               text: "Chart Download / Chart Options",
               theme: {
-                fill: "#0F8AFF"
+                fill: "#0F8AFF",
               },
               symbol: null,
               symbolFill: "#0F8AFF",
@@ -2354,27 +2383,27 @@ require([
               menuItems: [
                 {
                   text: "Download PNG",
-                  onclick: function() {
+                  onclick: function () {
                     this.exportChart({
-                      type: "PNG"
+                      type: "PNG",
                     });
-                  }
+                  },
                 },
                 {
                   text: "Download CSV",
-                  onclick: function() {
+                  onclick: function () {
                     this.downloadCSV();
-                  }
+                  },
                 },
                 {
                   text: "Download Excel",
-                  onclick: function() {
+                  onclick: function () {
                     this.downloadXLS();
-                  }
+                  },
                 },
                 {
                   text: "Change Background Transparency",
-                  onclick: function() {
+                  onclick: function () {
                     //check for rgba vs. rgb
                     if (
                       this.chartBackground.element.attributes.fill.value.substring(
@@ -2384,37 +2413,37 @@ require([
                     ) {
                       //this value should match the default value set above in Chart.BackgroundColor
                       this.chartBackground.attr({
-                        fill: "rgba(255, 255, 255, .45)"
+                        fill: "rgba(255, 255, 255, .45)",
                       });
                     } else {
                       this.chartBackground.attr({
-                        fill: "rgb(255, 255, 255)"
+                        fill: "rgb(255, 255, 255)",
                       });
                     }
-                  }
-                }
-              ]
-            }
-          }
+                  },
+                },
+              ],
+            },
+          },
         },
         xAxis: {
           categories: columnLabels,
           title: {
-            text: "Ranked by " + labelxSelect()
-          }
+            text: "Ranked by " + labelxSelect(),
+          },
         },
         yAxis: {
           min: 0,
           title: {
-            text: labelySelect()
+            text: labelySelect(),
           },
           stackLabels: {
             enabled: false,
             style: {
               fontWeight: "bold",
-              color: (Highcharts.theme && Highcharts.theme.textColor) || "gray"
-            }
-          }
+              color: (Highcharts.theme && Highcharts.theme.textColor) || "gray",
+            },
+          },
         },
         legend: {
           align: "left",
@@ -2429,16 +2458,16 @@ require([
           borderWidth: 1,
           shadow: false,
           itemWidth: 300,
-          labelFormatter: function() {
+          labelFormatter: function () {
             var yI = this.name.indexOf(")");
             var shortName = "";
             if (yI > -1) shortName = this.name.substring(yI + 1);
             else shortName = this.name;
             return shortName;
-          }
+          },
         },
         tooltip: {
-          formatter: function() {
+          formatter: function () {
             var rank = this.point.index + 1;
             var percentOfTotal = (this.point.y / this.point.stackTotal) * 100;
             return (
@@ -2466,7 +2495,7 @@ require([
               rank +
               "</b>"
             );
-          }
+          },
         },
         plotOptions: {
           column: {
@@ -2475,13 +2504,13 @@ require([
               enabled: false,
               color:
                 (Highcharts.theme && Highcharts.theme.dataLabelsColor) ||
-                "white"
-            }
+                "white",
+            },
           },
           series: {
             point: {
               events: {
-                mouseOver: function() {
+                mouseOver: function () {
                   //get everything needed for the query
                   var category =
                     $("#groupResultsSelect")[0].selectedIndex == 0
@@ -2515,7 +2544,7 @@ require([
 
                   function responseHandler(response) {
                     //remove only the mouseover graphic
-                    $.each(app.map.graphics.graphics, function(i, graphic) {
+                    $.each(app.map.graphics.graphics, function (i, graphic) {
                       if (graphic.symbol.id == undefined) {
                         // || graphic.symbol.id !== "zoomHighlight"){
                         app.map.graphics.remove(graphic);
@@ -2536,7 +2565,7 @@ require([
                     app.map.graphics.add(feature);
                   }
                 },
-                click: function(evt) {
+                click: function (evt) {
                   var queryField = switchWhereField(
                     $("#groupResultsSelect")[0].selectedIndex
                   );
@@ -2556,18 +2585,18 @@ require([
 
                   app.map.graphics.clear();
                   app.createChartQuery(queryString);
-                }
-              }
-            }
-          }
+                },
+              },
+            },
+          },
         },
         credits: {
-          enabled: false
+          enabled: false,
         },
-        series: series
+        series: series,
       });
-      $(".highcharts-button-box").click(function() {
-        $.each(app.map.graphics.graphics, function(i, obj) {
+      $(".highcharts-button-box").click(function () {
+        $.each(app.map.graphics.graphics, function (i, obj) {
           if (obj.symbol.id == "zoomhighlight") {
             app.map.graphics.remove(obj);
           }
@@ -2592,9 +2621,9 @@ require([
       );
 
       var newResponse = [];
-      $.each(categories, function(i, c) {
+      $.each(categories, function (i, c) {
         newResponse.push(
-          tableArr.filter(function(t) {
+          tableArr.filter(function (t) {
             return t[whichName] == c;
           })[0]
         );
@@ -2610,7 +2639,7 @@ require([
     $("#resultsTable").addClass("hover-highlight");
     $("#resultsTable").append("<thead></thead>");
 
-    $.each(headers, function(h, head) {
+    $.each(headers, function (h, head) {
       var yI = head.indexOf(")"); //yield");
       var shortHeader = "";
       if (yI > -1) shortHeader = head.substring(yI + 1);
@@ -2637,27 +2666,25 @@ require([
 
     var htmlHeaderArr = [];
     htmlHeaderArr.push("<tr>");
-    $.each(headerKeyArr, function(index, key) {
+    $.each(headerKeyArr, function (index, key) {
       //console.log(key);
       htmlHeaderArr.push("<th>" + key + "</th>");
     });
     htmlHeaderArr.push("</tr>");
 
-    $("#resultsTable")
-      .find("thead")
-      .html(htmlHeaderArr.join(""));
+    $("#resultsTable").find("thead").html(htmlHeaderArr.join(""));
 
     var htmlArr = [];
 
     $("#resultsTable").append('<tbody id="tableBody"></tbody>');
-    $.each(response, function(rowIndex, feature) {
+    $.each(response, function (rowIndex, feature) {
       var rowI =
         selectedLayerId == 0
           ? feature["MRB_ID"] || feature["ST_MRB_ID"]
           : rowIndex;
 
       htmlArr.push("<tr id='row" + rowI + "'>");
-      $.each(feature, function(key, value) {
+      $.each(feature, function (key, value) {
         if (key == "total") {
           var insertSpace;
           if ($("#groupResultsSelect")[0].selectedIndex == 0) {
@@ -2677,7 +2704,7 @@ require([
     $(".tablesorter").trigger("updateAll");
     $(".tablesorter").tablesorter({
       widthFixed: true,
-      onRenderHeader: function() {
+      onRenderHeader: function () {
         var colorArr =
           $('.radio input[type="radio"]:checked')[0].id == "radio1"
             ? phosColors
@@ -2691,12 +2718,12 @@ require([
               ';height: 3px;margin-bottom:2px;"></div>'
           );
         }
-      }
+      },
     });
   } //END buildTable
 
   //hover over table row, go highlight region on map
-  $(document).on("mouseenter", "#tableBody tr", function(e) {
+  $(document).on("mouseenter", "#tableBody tr", function (e) {
     var category =
       $("#groupResultsSelect")[0].selectedIndex == 0
         ? e.currentTarget.id.substring(3)
@@ -2724,7 +2751,7 @@ require([
 
     function responseHandler(response) {
       //remove only the mouseover graphic
-      $.each(app.map.graphics.graphics, function(i, graphic) {
+      $.each(app.map.graphics.graphics, function (i, graphic) {
         if (graphic.symbol.id == undefined) {
           app.map.graphics.remove(graphic);
         }
@@ -2745,18 +2772,10 @@ require([
     }
   });
 
-  function showModal() {
-    $("#geosearchModal").modal("show");
-  }
-  // Geosearch nav menu is selected
-  $("#geosearchNav").click(function() {
-    showModal();
-  });
-
   function showDataDownloadModal() {
     $("#downloadDatamodal").modal("show");
   }
-  $("#dataDownloadNav").click(function() {
+  $("#dataDownloadNav").click(function () {
     showDataDownloadModal();
   });
 
@@ -2765,18 +2784,18 @@ require([
     //$("#aboutModalsubHeader").html(modalSubtitle);
     $("#aboutModal").modal("show");
   }
-  $("#aboutNav").click(function() {
+  $("#aboutNav").click(function () {
     showAboutModal();
   });
 
   function showUserGuideModal() {
     $("#userGuideModal").modal("show");
   }
-  $("#userGuideNav").click(function() {
+  $("#userGuideNav").click(function () {
     showUserGuideModal();
   });
 
-  $(".showAboutDefinitions").click(function() {
+  $(".showAboutDefinitions").click(function () {
     $("#userGuideModal").modal("hide");
     $("#downloadDatamodal").modal("hide");
     $("#geosearchModal").modal("hide");
@@ -2787,10 +2806,8 @@ require([
 
   $("#html").niceScroll();
   $("#sidebar").niceScroll();
-  $("#sidebar").scroll(function() {
-    $("#sidebar")
-      .getNiceScroll()
-      .resize();
+  $("#sidebar").scroll(function () {
+    $("#sidebar").getNiceScroll().resize();
   });
 
   function showTableResizeable() {
@@ -2802,7 +2819,7 @@ require([
   app.maxLegendHeight = $("#mapDiv").height() * 0.9;
   $("#legendElement").css("max-height", app.maxLegendHeight);
 
-  $("#legendCollapse").on("shown.bs.collapse", function() {
+  $("#legendCollapse").on("shown.bs.collapse", function () {
     app.maxLegendHeight = $("#mapDiv").height() * 0.9;
     $("#legendElement").css("max-height", app.maxLegendHeight);
     /*** CAUSING SOME NASTY MESS WITH THE LEGEND DIV
@@ -2811,14 +2828,14 @@ require([
         ***/
   });
 
-  $("#legendCollapse").on("hide.bs.collapse", function() {
+  $("#legendCollapse").on("hide.bs.collapse", function () {
     $("#legendElement").css("height", "initial");
   });
 
-  require(["dijit/form/CheckBox"], function(CheckBox) {
-    $.each(allLayers, function(index, group) {
+  require(["dijit/form/CheckBox"], function (CheckBox) {
+    $.each(allLayers, function (index, group) {
       //sub-loop over layers within this groupType
-      $.each(group.layers, function(layerName, layerDetails) {
+      $.each(group.layers, function (layerName, layerDetails) {
         if (layerDetails.wimOptions.layerType === "agisImage") {
           var layer = new ArcGISImageServiceLayer(
             layerDetails.url,
@@ -2947,49 +2964,46 @@ require([
         );
       }
       //click listener for regular
-      button.click(function(e) {
+      button.click(function (e) {
         //toggle checkmark
-        if (e.currentTarget.firstElementChild.id != "SparrowRanking"){
-            $(this)
-                .find("i.glyphspan")
-                .toggleClass("fa-check-square-o fa-square-o");
-            $(this)
-                .find("button")
-                .button("toggle");
+        if (e.currentTarget.firstElementChild.id != "SparrowRanking") {
+          $(this)
+            .find("i.glyphspan")
+            .toggleClass("fa-check-square-o fa-square-o");
+          $(this).find("button").button("toggle");
 
-            e.preventDefault();
-            e.stopPropagation();
+          e.preventDefault();
+          e.stopPropagation();
 
-            $("#" + camelize(layerName)).toggle();
+          $("#" + camelize(layerName)).toggle();
 
-            //layer toggle
-            if (layer.visible) {
-                layer.setVisibility(false);
-                //find id, remove from legend
-                var ids = [];
-                $.each(app.legend.layerInfos, function(i, infos) {
-                    ids.push(infos.layer.id);
-                });
+          //layer toggle
+          if (layer.visible) {
+            layer.setVisibility(false);
+            //find id, remove from legend
+            var ids = [];
+            $.each(app.legend.layerInfos, function (i, infos) {
+              ids.push(infos.layer.id);
+            });
 
-                var index = ids.indexOf(layer.id);
-                if (index > -1) {
-                    app.legend.layerInfos.splice(index, 1);
-                }
-                app.legend.refresh();
-            } else {
-                layer.setVisibility(true);
-                //add to legend.
-                app.legend.layerInfos.push({
-                    layer: layer,
-                    title: e.currentTarget.innerText
-                });
-                app.legend.refresh();
-
-                //TODO: note that layers that are turned on won't show up in the legend on instantiation
+            var index = ids.indexOf(layer.id);
+            if (index > -1) {
+              app.legend.layerInfos.splice(index, 1);
             }
+            app.legend.refresh();
+          } else {
+            layer.setVisibility(true);
+            //add to legend.
+            app.legend.layerInfos.push({
+              layer: layer,
+              title: e.currentTarget.innerText,
+            });
+            app.legend.refresh();
+
+            //TODO: note that layers that are turned on won't show up in the legend on instantiation
+          }
         }
-        
-    });
+      });
 
       //group heading logic
       if (showGroupHeading) {
@@ -3013,7 +3027,7 @@ require([
         $("#" + groupDivID).append(button);
         //begin opacity slider logic
         if ($("#opacity" + camelize(layerName)).length > 0) {
-          $("#opacity" + camelize(layerName)).hover(function() {
+          $("#opacity" + camelize(layerName)).hover(function () {
             $(".opacitySlider").remove();
             var currOpacity = app.map.getLayer(options.id).opacity;
             var slider = $(
@@ -3028,15 +3042,15 @@ require([
             $(".opacitySlider").css("left", event.clientX - 180);
             $(".opacitySlider").css("top", event.clientY - 50);
 
-            $(".opacitySlider").mouseleave(function() {
+            $(".opacitySlider").mouseleave(function () {
               $(".opacitySlider").remove();
             });
 
-            $(".opacityClose").click(function() {
+            $(".opacityClose").click(function () {
               $(".opacitySlider").remove();
             });
 
-            $("#slider").change(function(event) {
+            $("#slider").change(function (event) {
               //get the value of the slider with this call
               var o = $("#slider")[0].value / 100;
               //console.log("o: " + o);
@@ -3051,7 +3065,7 @@ require([
         //end opacity slider logic
 
         //begin zoomto logic (in progress)
-        $(".zoomto").hover(function(event) {
+        $(".zoomto").hover(function (event) {
           $(".zoomDialog").remove();
           //var layerToChange = this.id.replace("zoom", "");
           var zoomDialogMarkup = $(
@@ -3062,15 +3076,15 @@ require([
           $(".zoomDialog").css("left", event.clientX - 80);
           $(".zoomDialog").css("top", event.clientY - 5);
 
-          $(".zoomDialog").mouseleave(function() {
+          $(".zoomDialog").mouseleave(function () {
             $(".zoomDialog").remove();
           });
 
-          $(".zoomClose").click(function() {
+          $(".zoomClose").click(function () {
             $(".zoomDialog").remove();
           });
 
-          $("#zoomscale").click(function(e, layerToChange) {
+          $("#zoomscale").click(function (e, layerToChange) {
             //logic to zoom to layer scale
             var layerMinScale = app.map.getLayer("SparrowRanking").minScale;
             if (layerMinScale > 0) {
@@ -3080,7 +3094,7 @@ require([
             }
           });
 
-          $("#zoomcenter").click(function(e, layerToChange) {
+          $("#zoomcenter").click(function (e, layerToChange) {
             //logic to zoom to layer center
             var layerCenter = app.map
               .getLayer("SparrowRanking")
@@ -3096,21 +3110,22 @@ require([
           });
 
           if ($("#zoomextent")) {
-            $("#zoomextent").click(function(e, layerToChange) {
+            $("#zoomextent").click(function (e, layerToChange) {
               //logic to zoom to layer extent
               var layerExtent = app.map.getLayer("SparrowRanking").fullExtent;
               var extentProjectParams = new ProjectParameters();
               extentProjectParams.outSR = new SpatialReference(102100);
               extentProjectParams.geometries = [layerExtent];
-              geomService.project(extentProjectParams, function(
-                projectedExtentObj
-              ) {
-                var projectedExtent = projectedExtentObj[0];
-                map.setExtent(
-                  projectedExtent,
-                  new SpatialReference({ wkid: 102100 })
-                );
-              });
+              geomService.project(
+                extentProjectParams,
+                function (projectedExtentObj) {
+                  var projectedExtent = projectedExtentObj[0];
+                  map.setExtent(
+                    projectedExtent,
+                    new SpatialReference({ wkid: 102100 })
+                  );
+                }
+              );
             });
           }
         }); //end zoomto logic
