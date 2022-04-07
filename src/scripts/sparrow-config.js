@@ -10,7 +10,7 @@ var appTitle = "Mississippi-Atchafalaya River Basin 2002 Nutrient Loading";
 var appVersion = "v1.0.0";
 //var modalSubtitle = "2002 Nutrient Loading";
 
-var serviceBaseURL = "https://sparrowtest.wim.usgs.gov/arcgis/rest/services/SparrowMARB/SparrowMARB/MapServer/"; //important! UPDATE rest service URL
+var serviceBaseURL = "https://gis1.wim.usgs.gov/server/rest/services/Sparrow/SparrowMARB/MapServer/"; //important! UPDATE rest service URL
 var chartUnits = " (kg/yr.)";
 var chartFeatureMax = 2500;  //chart will not be available if more than this many polygons are showing on map.
 
